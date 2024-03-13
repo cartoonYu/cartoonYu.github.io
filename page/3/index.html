@@ -152,105 +152,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/09/03/JAVA/%E6%97%A0%E7%AC%A6%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6%E4%B8%8E%E6%9C%89%E7%AC%A6%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6%E7%9A%84%E5%8C%BA%E5%88%AB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/09/03/JAVA/%E6%97%A0%E7%AC%A6%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6%E4%B8%8E%E6%9C%89%E7%AC%A6%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6%E7%9A%84%E5%8C%BA%E5%88%AB/" class="post-title-link" itemprop="url">>>与>>>的区别</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-09-03 09:40:42" itemprop="dateCreated datePublished" datetime="2019-09-03T09:40:42+00:00">2019-09-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="前序"><a href="#前序" class="headerlink" title="前序"></a>前序</h3><p>在看HashMap源码的时候，看到HashMap的hash函数里面有用到&gt;&gt;&gt;的运算符，之前经常在除2操作用到&gt;&gt;运算符，但是还是第一次看到&gt;&gt;&gt;，于是就来记录一下。</p>
-<h3 id="情景复现"><a href="#情景复现" class="headerlink" title="情景复现"></a>情景复现</h3><p>hashMap的hash函数源码</p>
-<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190903174605.png" alt="hashMap的hash函数源码"></p>
-<p>因为里面主要是先获取key的hashCode，这是jvm生成的，所以我单独用1模拟hashCode</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.out.println((h = 1) ^ (h &gt;&gt;&gt; 16));</span><br></pre></td></tr></table></figure>
-
-<p>结果如下</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">情景复现： 1</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="步骤解析"><a href="#步骤解析" class="headerlink" title="步骤解析"></a>步骤解析</h4><p>这段代码主要由三段代码运算而成</p>
-<ol>
-<li>h直接赋值为1</li>
-<li>h&gt;&gt;&gt;16位</li>
-<li>步骤1与步骤2的异或运算</li>
-</ol>
-<p>所以从结果推断出1&gt;&gt;&gt;16结果为0</p>
-<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(&quot;-12&gt;&gt;&gt;2结果为：&quot;+Integer.toBinaryString(-12&gt;&gt;&gt;2));</span><br><span class="line">System.out.println(&quot;12&gt;&gt;&gt;2结果为：&quot;+Integer.toBinaryString(12&gt;&gt;&gt;2));</span><br><span class="line">System.out.println(&quot;-12&gt;&gt;2结果为：&quot;+Integer.toBinaryString(-12&gt;&gt;2));</span><br><span class="line">System.out.println(&quot;12&gt;&gt;2结果为：&quot;+Integer.toBinaryString(12&gt;&gt;2));</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-12&gt;&gt;&gt;2结果为：111111111111111111111111111101</span><br><span class="line">12&gt;&gt;&gt;2结果为：11</span><br><span class="line">-12&gt;&gt;2结果为：11111111111111111111111111111101</span><br><span class="line">12&gt;&gt;2结果为：11</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>从结果可以看出，利用正数做操作时，&gt;&gt;与&gt;&gt;&gt;结果没有变化，但是负数的操作时发生了变化，这个对比证明了&gt;&gt;&gt;的操作与符号位有关。</p>
-<ul>
-<li>正数操作</li>
-</ul>
-<p>由于位运算时，利用Integer.toBinaryString方法输出不会输出前置0，所以可以推断两个运算符的操作都是右移n位补0</p>
-<ul>
-<li>负数操作</li>
-</ul>
-<p>由于负数存储的是它的补码，在进行&gt;&gt;运算的时候明显看到生成的二进制字符串补1，且长度比正数运算的时候要长，java在二进制中是不区分符号位的，所以最后的十进制表示的数会异常大。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>两个运算符，在进行正数移位的时候操作是一样的。但是在处理负数时，&gt;&gt;补1，是带符号操作的。而&gt;&gt;&gt;补0，是无符号操作的。</p>
-<p><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/java/%E6%97%A0%E7%AC%A6%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6%E4%B8%8E%E6%9C%89%E7%AC%A6%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6%E7%9A%84%E5%8C%BA%E5%88%AB/">https://cartoonyu.github.io/cartoon-blog/post/java/无符号运算符与有符号运算符的区别/</a></strong></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/06/24/JAVA/for%E4%B8%8Ewhile%E6%97%B6%E9%97%B4%E7%9A%84%E5%AF%B9%E6%AF%94/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -282,7 +183,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -386,7 +287,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -502,7 +403,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -632,7 +533,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -889,7 +790,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -1144,7 +1045,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -1319,7 +1220,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -1387,7 +1288,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -1455,7 +1356,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -1553,6 +1454,140 @@
   
   
 
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/Ubuntu/JDK%E5%9C%A8Win10%E4%B8%8EUbuntu%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/05/08/Ubuntu/JDK%E5%9C%A8Win10%E4%B8%8EUbuntu%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/" class="post-title-link" itemprop="url">JDK在Win10与Ubuntu下的安装与配置</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-05-08 13:28:14" itemprop="dateCreated datePublished" datetime="2019-05-08T13:28:14+00:00">2019-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;近段时间把自己电脑（win）、虚拟机（Ubuntu）以及阿里云（ubuntu）都重置了一遍，三个地方都有用到JDK,不想之后找教程找的那么麻烦。所以就自己总结一遍，一次性把轮子造好。</p>
+<ul>
+<li><p>环境</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Win10 1803 Home</span><br><span class="line">Ubuntu 16.04.3</span><br><span class="line">Ubuntu 18.04.1</span><br></pre></td></tr></table></figure>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;其中服务器与虚拟机配置方法一致，只是目录不同，就归成Ubuntu一类好了。</p>
+</li>
+<li><p>Windows环境下安装</p>
+</li>
+</ul>
+<ol>
+<li><p>下载JDK的安装程序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.oracle.com/technetwork/java/javase/downloads/jdk10-downloads-4416644.html</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>按照步骤安装</p>
+</li>
+<li><p>配置环境变量</p>
+</li>
+</ol>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;此电脑–属性–编辑系统设置–环境变量</p>
+<ul>
+<li>新建系统变量JAVA_HOME，并在变量值选择Java的安装目录</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/580724644-5cceb9e535ee8_articlex.png"></p>
+<ul>
+<li>新建变量CLASSPATH，写入图中的变量值</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/465870922-5cceb9e53a78b_articlex.png"></p>
+<ul>
+<li>选择变量Path–编辑文本–在最后追加图中的值</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/2650024197-5cceb9e5525d5_articlex.png"></p>
+<ul>
+<li>验证安装是否成功</li>
+</ul>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;cmd下输入java -version</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1976718223-5cceb9e550ac1_articlex.png"></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;出现图中的输出语句即为成功 </p>
+<ul>
+<li>Ubuntu环境下安装</li>
+</ul>
+<ol>
+<li><p>下载JDK的压缩包</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.oracle.com/technetwork/java/javase/downloads/jdk10-downloads-4416644.html</span><br></pre></td></tr></table></figure>
+<p> &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;勾选同意协议后选择.tar.gz结尾的选项</p>
+</li>
+<li><p>解压到指定文件夹</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf packageName.tar.gz  //packageName为jdk压缩包包名</span><br></pre></td></tr></table></figure>
+<p> &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在服务器中我是直接通过xftp的GUI进行移动，虚拟机中受限于权限，我在终端上用root打开文件管理器移动的。</p>
+</li>
+<li><p>配置环境变量</p>
+<ul>
+<li><p>打开etc目录下的profile或者bashrc</p>
+   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br><span class="line">vim ~/.bashrc</span><br></pre></td></tr></table></figure>
+
+<p>  &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;vim的安装以及基本命令可以<a href="%5Bhttps://www.jianshu.com/p/2a3d05ab27f2%5D(https://www.jianshu.com/p/2a3d05ab27f2)">戳此查看</a></p>
+</li>
+<li><p>在末尾追加以下信息并保存</p>
+   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/root/usr/jdk</span><br><span class="line">export JRE_HOME=/root/usr/jre</span><br><span class="line">export CLASSPATH=.:$&#123;JAVA_HOME&#125;/lib:$&#123;JRE_HOME&#125;/lib</span><br><span class="line">export PATH=$&#123;JAVA_HOME&#125;/bin:$PATH</span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>刷新配置文件</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">source /etc/profile</span><br><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>验证安装是否成功</p>
+<p> &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;终端下输入java -version</p>
+<p> <img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/3429348406-5cceb9e5651d4_articlex.png"></p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
 
   
   <nav class="pagination">
@@ -1622,7 +1657,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">42</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

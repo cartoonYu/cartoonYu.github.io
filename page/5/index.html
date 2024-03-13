@@ -152,87 +152,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/Android/Android%E5%88%A9%E7%94%A8Handler%E5%BC%82%E6%AD%A5%E8%8E%B7%E5%8F%96%E5%AD%90%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84%E4%BA%A7%E7%94%9F%E7%9A%84%E5%80%BC/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/05/08/Android/Android%E5%88%A9%E7%94%A8Handler%E5%BC%82%E6%AD%A5%E8%8E%B7%E5%8F%96%E5%AD%90%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84%E4%BA%A7%E7%94%9F%E7%9A%84%E5%80%BC/" class="post-title-link" itemprop="url">Android利用Handler异步获取子线程中的产生的值</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-05-08 12:17:37" itemprop="dateCreated datePublished" datetime="2019-05-08T12:17:37+00:00">2019-05-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;近段时间有一个需求：在线获取图片并且显示在界面上。因为在线获取图片必定会有延迟，如果在主线程中获取会有很大几率造成主线程阻塞。解决的办法是开辟子线程进行网络访问。新的问题又出现了：android的UI更新必须在主线程中完成。但是子线程的值脱离线程会无效，造成java.lang.NullPointerException。所以思考了一下决定用android自带的异步处理机制：Handler，进行消息的回调。</p>
-<ol>
-<li>线程的开辟。</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">private void downloadImage() &#123;</span><br><span class="line">        new Thread(new Runnable() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void run() &#123;</span><br><span class="line">                final Bitmap bitmap= ServerImage.downloadFile();     //在线获取图片</span><br><span class="line">                Looper.prepare();</span><br><span class="line">                Message message=new Message();</span><br><span class="line">                message.what=0;</span><br><span class="line">                message.obj=bitmap;</span><br><span class="line">                handler.sendMessage(message);</span><br><span class="line">                Looper.loop();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<ol start="2">
-<li>自定义Handler。</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">class ImageHandler extends Handler&#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void handleMessage(Message msg)&#123;</span><br><span class="line">            //编写自定义逻辑</span><br><span class="line">            switch (msg.what)&#123;</span><br><span class="line">                case 0:&#123;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;其中switch中的case与调用handler时定义的msg.what要严格一致。</p>
-<ol start="3">
-<li>handler对象的定义</li>
-</ol>
-<p>  &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;定义的时候注意一点：要在子线程外定义。</p>
-<p>  &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;我尝试过在子线程内定义，结果在把handler里面得到的图片赋值给UI组件时发生java.lang.NullPointerException。不清楚什么原因，但是确实挺有趣的，有时间会探求一下里面的原理。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/MySQL/%E8%A7%A3%E5%86%B3win10%E4%B8%8BMySQL%208.0%E7%99%BB%E5%BD%95Access%20denied%20for%20user%20'root'@'localhost'%20(using%20password%20YES)%E7%9A%84%E9%97%AE%E9%A2%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -264,7 +183,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -385,7 +304,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-03-13 07:31:02" itemprop="dateModified" datetime="2024-03-13T07:31:02+00:00">2024-03-13</time>
+                <time title="Modified: 2024-03-13 07:36:32" itemprop="dateModified" datetime="2024-03-13T07:36:32+00:00">2024-03-13</time>
               </span>
 
           
@@ -499,7 +418,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">42</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
