@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言近段时间在使用easyopen时，发现定义的请求体与实际参数不符时会出现参数无法正常传递的现象，于是就把easyopen的源码 clone 下来研究了一波。 easyopen 测试版本 11.16.6.1  场景复现 请求体定义如下  12345678910111213public class GoodsParam &amp;#123;    @ApiDocField(description &#x3D; &amp;q">
+<meta property="og:type" content="article">
+<meta property="og:title" content="easyopen 参数无法正常传递现象解析">
+<meta property="og:url" content="https://cartoonyu.github.io/2019/05/08/source%20code%20unscramble/easyopen%20%E5%8F%82%E6%95%B0%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E4%BC%A0%E9%80%92%E7%8E%B0%E8%B1%A1%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="前言近段时间在使用easyopen时，发现定义的请求体与实际参数不符时会出现参数无法正常传递的现象，于是就把easyopen的源码 clone 下来研究了一波。 easyopen 测试版本 11.16.6.1  场景复现 请求体定义如下  12345678910111213public class GoodsParam &amp;#123;    @ApiDocField(description &#x3D; &amp;q">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201026224740.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201026224806.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201026225418.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201103002224.png">
+<meta property="article:published_time" content="2019-05-08T05:28:14.000Z">
+<meta property="article:modified_time" content="2024-04-05T08:41:25.415Z">
+<meta property="article:author" content="cartoon Yu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201026224740.png">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2019/05/08/source%20code%20unscramble/easyopen%20%E5%8F%82%E6%95%B0%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E4%BC%A0%E9%80%92%E7%8E%B0%E8%B1%A1%E8%A7%A3%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>easyopen 参数无法正常传递现象解析 | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/source%20code%20unscramble/easyopen%20%E5%8F%82%E6%95%B0%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E4%BC%A0%E9%80%92%E7%8E%B0%E8%B1%A1%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          easyopen 参数无法正常传递现象解析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-05-08 13:28:14" itemprop="dateCreated datePublished" datetime="2019-05-08T13:28:14+08:00">2019-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>近段时间在使用easyopen时，发现定义的请求体与实际参数不符时会出现参数无法正常传递的现象，于是就把easyopen的源码 clone 下来研究了一波。</p>
+<h4 id="easyopen-测试版本"><a href="#easyopen-测试版本" class="headerlink" title="easyopen 测试版本"></a>easyopen 测试版本</h4><blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1.16.6.1</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h4 id="场景复现"><a href="#场景复现" class="headerlink" title="场景复现"></a>场景复现</h4><ul>
+<li>请求体定义如下</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GoodsParam</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ApiDocField(description = &quot;商品名称&quot;, required = true, example = &quot;iphoneX&quot;, name = &quot;goods&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String goodsName;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getGoodsName</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> goodsName;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setGoodsName</span><span class="params">(String goodsName)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.goodsName = goodsName;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>接口定义如下</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ApiService</span></span><br><span class="line"><span class="meta">@ApiDoc(&quot;商品模块&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GoodsApi</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(GoodsApi.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Api(name = &quot;goods.get&quot;)</span></span><br><span class="line">    <span class="meta">@ApiDocMethod(description = &quot;获取商品&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getGoods</span><span class="params">(GoodsParam param)</span> &#123;</span><br><span class="line">        log.info(<span class="string">&quot;incoming param: &#123;&#125;&quot;</span>, JSONObject.toJSONString(param));</span><br><span class="line">        <span class="keyword">return</span> param.getGoodsName();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<pre><code>上述代码使用[官方示例](https://gitee.com/durcframework/easyopen/tree/master/easyopen-demo/easyopen-server-normal)修改。
+
+因为我是要复现出错的场景，所以我对请求体属性 goodsName 进行修改，并修改原有接口逻辑，使得接口打印请求体数据并直接返回请求体 goodsName 属性。
+
+启动项目，请求接口 [goods.get](http://localhost:8081/api/doc#201)，日志与结果截图如下
+</code></pre>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201026224740.png"></p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201026224806.png"></p>
+<pre><code>接口并未如文档定义一般拿到请求体的参数，场景复现。
+</code></pre>
+<h4 id="寻找原因"><a href="#寻找原因" class="headerlink" title="寻找原因"></a>寻找原因</h4><pre><code>代码的好处是，0 即是 0，1 就是 1，如果 0 变成 1，那就是你写的 bug 或者你有意为之，这个场景必定有代码作为支撑。
+
+  因为研读源码的经验较浅，所以一开始从框架打印日志入手。
+</code></pre>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201026225418.png"></p>
+<pre><code> 程序在启动时总会打这几行日志，所以就全局搜索了一波，定位到 src\main\java\com\gitee\easyopen\register\ApiRegister.java 的 doWith 方法中。
+</code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doWith</span><span class="params">(Method method)</span> <span class="keyword">throws</span> IllegalArgumentException, IllegalAccessException &#123;</span><br><span class="line">	checkTransactionalAnnotation(method);</span><br><span class="line">     ReflectionUtils.makeAccessible(method);</span><br><span class="line">     <span class="type">Api</span> <span class="variable">api</span> <span class="operator">=</span> AnnotationUtils.findAnnotation(method, Api.class);</span><br><span class="line">     <span class="type">boolean</span> <span class="variable">ignoreSign</span> <span class="operator">=</span> api.ignoreSign() ? <span class="literal">true</span> : <span class="built_in">this</span>.apiServiceAnno.ignoreSign();</span><br><span class="line">     <span class="type">boolean</span> <span class="variable">ignoreValidate</span> <span class="operator">=</span> api.ignoreValidate() ? <span class="literal">true</span> : <span class="built_in">this</span>.apiServiceAnno.ignoreValidate();</span><br><span class="line">     <span class="type">boolean</span> <span class="variable">isWrapResult</span> <span class="operator">=</span> <span class="built_in">this</span>.apiServiceAnno.wrapResult() ? api.wrapResult() : <span class="literal">false</span>;</span><br><span class="line">     <span class="type">ApiDefinition</span> <span class="variable">apiDefinition</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ApiDefinition</span>();</span><br><span class="line">     <span class="comment">//apiDefinition setter....</span></span><br><span class="line">     Parameter[] parameters = method.getParameters();</span><br><span class="line">     Class&lt;?&gt; paramClass = <span class="literal">null</span>;</span><br><span class="line">     <span class="keyword">if</span> (parameters != <span class="literal">null</span> &amp;&amp; parameters.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">     	<span class="type">Parameter</span> <span class="variable">parameter</span> <span class="operator">=</span> parameters[<span class="number">0</span>];</span><br><span class="line">        paramClass = parameter.getType();</span><br><span class="line">        <span class="type">boolean</span> <span class="variable">isNumberOrStringType</span> <span class="operator">=</span> FieldUtil.isNumberOrStringType(paramClass);</span><br><span class="line">        apiDefinition.setSingleParameter(isNumberOrStringType);</span><br><span class="line">        apiDefinition.setMethodArguClass(paramClass);</span><br><span class="line">        <span class="keyword">if</span> (isNumberOrStringType) &#123;</span><br><span class="line">            SingleParameterContext.add(handler, method, parameter, api);</span><br><span class="line">        &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     logger.debug(<span class="string">&quot;注册接口name=&#123;&#125;,version=&#123;&#125;,method=&#123;&#125; &#123;&#125;(&#123;&#125;)&quot;</span>, api.name(), api.version(),</span><br><span class="line">     method.getReturnType().getName(), method.getName(), paramClass == <span class="literal">null</span> ? <span class="string">&quot;&quot;</span> : paramClass.getName()); </span><br><span class="line">     <span class="keyword">try</span> &#123;</span><br><span class="line">        DefinitionHolder.addApiDefinition(apiDefinition);</span><br><span class="line">        apiConfig.getApiRegistEvent().onSuccess(apiDefinition);</span><br><span class="line">     &#125; <span class="keyword">catch</span> (DuplicateApiNameException e) &#123;</span><br><span class="line">        logger.error(e.getMessage(), e);</span><br><span class="line">        System.exit(<span class="number">0</span>);</span><br><span class="line">     &#125;</span><br><span class="line">     apiCount++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">addApiDefinition</span><span class="params">(ApiDefinition apiDefinition)</span> <span class="keyword">throws</span> DuplicateApiNameException &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">key</span> <span class="operator">=</span> getKey(apiDefinition);</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">hasApi</span> <span class="operator">=</span> apiDefinitionMap.containsKey(key);</span><br><span class="line">    <span class="keyword">if</span> (hasApi) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">DuplicateApiNameException</span>(<span class="string">&quot;重复申明接口,name:&quot;</span> + apiDefinition.getName() + <span class="string">&quot; ,version:&quot;</span>+ apiDefinition.getVersion() + <span class="string">&quot;,method:&quot;</span> + apiDefinition.getMethod().getName());</span><br><span class="line">    &#125;</span><br><span class="line">    apiDefinitionMap.put(key, apiDefinition);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>阅读代码发现，这一段代码只负责定义接口的解析并形成一个 String to ApiDefinition 的 Map，并没有请求体参数转换逻辑，所以这不是目的地。
+
+但是这么大段代码只形成一个 Map，这个 Map 必定有其作用。于是寻找调用这个 Map 的 getter 方法，最后定位到 src\main\java\com\gitee\easyopen\register\ApiInvoker.java 的 doInvoke 方法中。
+</code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> Object <span class="title function_">doInvoke</span><span class="params">(ApiParam param, HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="type">ApiDefinition</span> <span class="variable">apiDefinition</span> <span class="operator">=</span> <span class="built_in">this</span>.getApiDefinition(param);</span><br><span class="line">    ApiContext.setApiMeta(apiDefinition);</span><br><span class="line">    <span class="keyword">if</span> (!apiDefinition.isIgnoreJWT()) &#123;</span><br><span class="line">        <span class="built_in">this</span>.initJwtInfo(request, param);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 方法参数</span></span><br><span class="line">    <span class="type">Object</span> <span class="variable">methodArgu</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="comment">// 返回结果</span></span><br><span class="line">    <span class="type">Object</span> <span class="variable">invokeResult</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="type">Validator</span> <span class="variable">validator</span> <span class="operator">=</span> ApiContext.getApiConfig().getValidator();</span><br><span class="line">    param.setIgnoreSign(apiDefinition.isIgnoreSign());</span><br><span class="line">    param.setIgnoreValidate(apiDefinition.isIgnoreValidate());</span><br><span class="line">    <span class="comment">// 验证操作，这里有负责验证签名参数</span></span><br><span class="line">    validator.validate(param);</span><br><span class="line">    <span class="comment">// 业务参数json格式</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">busiJsonData</span> <span class="operator">=</span> ApiContext.getApiConfig().getDataDecoder().decode(param);</span><br><span class="line">    <span class="comment">// 业务参数Class</span></span><br><span class="line">    Class&lt;?&gt; arguClass = apiDefinition.getMethodArguClass();</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">isSingleParameter</span> <span class="operator">=</span> apiDefinition.isSingleParameter();</span><br><span class="line">    <span class="type">Object</span> <span class="variable">singleParamProxy</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="type">int</span> <span class="variable">interceptorIndex</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 将参数绑定到业务方法参数上，业务方法参数可以定义的类型：JSONObject,Map&lt;String,Object&gt;,String,业务参数类</span></span><br><span class="line">        <span class="keyword">if</span> (arguClass != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span>(arguClass == JSONObject.class) &#123;</span><br><span class="line">                methodArgu = JSON.parseObject(busiJsonData);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span>(arguClass == Map.class) &#123;</span><br><span class="line">                methodArgu = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;String,Object&gt;(JSON.parseObject(busiJsonData));</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span>(isSingleParameter) &#123;</span><br><span class="line">                SingleParameterContext.<span class="type">SingleParameterContextValue</span> <span class="variable">value</span> <span class="operator">=</span> SingleParameterContext.get(param.fatchName(), param.fatchVersion());</span><br><span class="line">                <span class="keyword">if</span> (value != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="type">JSONObject</span> <span class="variable">jsonObj</span> <span class="operator">=</span> JSON.parseObject(busiJsonData);</span><br><span class="line">                    methodArgu = jsonObj.getObject(value.getParamName(), arguClass);</span><br><span class="line">                    singleParamProxy = jsonObj.toJavaObject(value.getWrapClass());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                methodArgu = JSON.parseObject(busiJsonData, arguClass);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">this</span>.bindUploadFile(methodArgu);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 拦截器</span></span><br><span class="line">        ApiInterceptor[] interceptors = ApiContext.getApiConfig().getInterceptors();</span><br><span class="line">        <span class="keyword">if</span>(interceptors == <span class="literal">null</span>) &#123;</span><br><span class="line">            interceptors = EMPTY_INTERCEPTOR_ARRAY;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//1. 调用preHandle</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; interceptors.length; i++) &#123;</span><br><span class="line">            <span class="type">ApiInterceptor</span> <span class="variable">interceptor</span> <span class="operator">=</span> interceptors[i];  </span><br><span class="line">            <span class="keyword">if</span> (interceptor.match(apiDefinition) &amp;&amp; !interceptor.preHandle(request, response, apiDefinition.getHandler(),methodArgu)) &#123;</span><br><span class="line">                <span class="comment">//1.1、失败时触发afterCompletion的调用  </span></span><br><span class="line">                triggerAfterCompletion(apiDefinition, interceptorIndex, request, response, methodArgu, <span class="literal">null</span>,<span class="literal">null</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">null</span>;  </span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//1.2、记录当前预处理成功的索引</span></span><br><span class="line">            interceptorIndex = i;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 验证业务参数JSR-303</span></span><br><span class="line">        <span class="built_in">this</span>.validateBizArgu(validator, methodArgu, singleParamProxy);</span><br><span class="line">        <span class="comment">/* *** 调用业务方法,被@Api标记的方法 ***/</span></span><br><span class="line">        <span class="type">MethodCaller</span> <span class="variable">methodCaller</span> <span class="operator">=</span> apiDefinition.getMethodCaller();</span><br><span class="line">        <span class="keyword">if</span> (methodCaller != <span class="literal">null</span>) &#123;</span><br><span class="line">            invokeResult = methodCaller.call(<span class="keyword">new</span> <span class="title class_">ApiInvocation</span>(apiDefinition, methodArgu));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            invokeResult = Callers.call(apiDefinition, methodArgu);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//3、调用postHandle,业务方法调用后处理（逆序）  </span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> interceptors.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;  </span><br><span class="line">            <span class="type">ApiInterceptor</span> <span class="variable">interceptor</span> <span class="operator">=</span> interceptors[i];  </span><br><span class="line">            <span class="keyword">if</span>(interceptor.match(apiDefinition)) &#123;</span><br><span class="line">                interceptor.postHandle(request, response, apiDefinition.getHandler(), methodArgu, invokeResult);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;  </span><br><span class="line">        <span class="keyword">if</span>(invokeResult == <span class="literal">null</span>) &#123;</span><br><span class="line">            invokeResult = EMPTY_OBJECT;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 最终返回的对象</span></span><br><span class="line">        <span class="type">Object</span> <span class="variable">finalReturn</span> <span class="operator">=</span> <span class="built_in">this</span>.wrapResult(apiDefinition, invokeResult);</span><br><span class="line">        setMsg(finalReturn);</span><br><span class="line">        <span class="comment">//4、触发整个请求处理完毕回调方法afterCompletion  </span></span><br><span class="line">        triggerAfterCompletion(apiDefinition, interceptorIndex, request, response, methodArgu, finalReturn, <span class="literal">null</span>);</span><br><span class="line">        <span class="keyword">return</span> finalReturn;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="built_in">this</span>.triggerAfterCompletion(apiDefinition, interceptorIndex, request, response, methodArgu, invokeResult, e);</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code> 阅读代码发现，此段代码主要做了四个事情：解析网络请求数据，从  apiDefinitionMap 获取接口对应配置，反射调用对应接口，包装调用接口返回结果并返回。参数解析必定在此段代码中处理！
+ 
+ 通过断点 debug 查看数据得知，参数解析集中于以下代码
+</code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (arguClass != <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (arguClass == JSONObject.class) &#123;</span><br><span class="line">        methodArgu = JSON.parseObject(busiJsonData);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (arguClass == Map.class) &#123;</span><br><span class="line">        methodArgu = <span class="keyword">new</span> <span class="title class_">HashMap</span>(JSON.parseObject(busiJsonData));</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isSingleParameter) &#123;</span><br><span class="line">        <span class="type">SingleParameterContextValue</span> <span class="variable">value</span> <span class="operator">=</span> SingleParameterContext.get(apiDefinition.getMethod());</span><br><span class="line">        <span class="keyword">if</span> (value != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="type">JSONObject</span> <span class="variable">jsonObj</span> <span class="operator">=</span> JSON.parseObject(busiJsonData);</span><br><span class="line">            methodArgu = jsonObj.getObject(value.getParamName(), arguClass);</span><br><span class="line">            singleParamProxy = jsonObj.toJavaObject(value.getWrapClass());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        methodArgu = JSON.parseObject(busiJsonData, arguClass);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">this</span>.bindUploadFile(methodArgu);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20201103002224.png"></p>
+<pre><code>step into断点得知，easyopen 依赖 fastjson 的序列化机制进行参数的序列化，原因得知：easyopen 使用 fastjson 序列化参数成为参数类获取参数，所以当 @ApiDocField 的属性 name 与参数类对应的属性名不一致时，属性值获取失败。
+</code></pre>
+<p><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于 <a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/source-code-unscramble/easyopen%E5%8F%82%E6%95%B0%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E4%BC%A0%E9%80%92%E7%8E%B0%E8%B1%A1%E8%A7%A3%E6%9E%90">https://cartoonyu.github.io/cartoon-blog/post/source-code-unscramble/easyopen参数无法正常传递现象解析</a></strong></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2019/05/08/source%20code%20unscramble/easyopen%20%E5%8F%82%E6%95%B0%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E4%BC%A0%E9%80%92%E7%8E%B0%E8%B1%A1%E8%A7%A3%E6%9E%90/" title="easyopen 参数无法正常传递现象解析">https://cartoonyu.github.io/2019/05/08/source code unscramble/easyopen 参数无法正常传递现象解析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/05/08/Ubuntu/Ubuntu%E4%B8%8B%E5%AE%89%E8%A3%85vim%E4%BB%A5%E5%8F%8A%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" rel="prev" title="Ubuntu下安装vim以及常用命令">
+      <i class="fa fa-chevron-left"></i> Ubuntu下安装vim以及常用命令
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/05/08/Ubuntu/JDK%E5%9C%A8Win10%E4%B8%8EUbuntu%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/" rel="next" title="JDK在Win10与Ubuntu下的安装与配置">
+      JDK在Win10与Ubuntu下的安装与配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#easyopen-%E6%B5%8B%E8%AF%95%E7%89%88%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">easyopen 测试版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E5%A4%8D%E7%8E%B0"><span class="nav-number">3.</span> <span class="nav-text">场景复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%BB%E6%89%BE%E5%8E%9F%E5%9B%A0"><span class="nav-number">4.</span> <span class="nav-text">寻找原因</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : 'a56b3a5d147292e5d5145109b12418e9',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

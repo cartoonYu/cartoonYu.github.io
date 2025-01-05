@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言在前后端交互的选择上，之前一直采用的是模板引擎(因为我只负责后端)。而这次的一个算是作业吧，前后端都是我，所以就研究了一下JSON交互在java web的应用(主要是前端)。 优缺点 前后端耦合  模板引擎加载只是将jsp的交互方式移植到html上，前端文件格式改变了，但是jsp中前后端耦合的缺点没有改变。 json交互中，数据通过js&#x2F;jquery动态加载在页面上，数据与页面进行分">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JSON工具类的构建(后端版本)">
+<meta property="og:url" content="https://cartoonyu.github.io/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC)/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="前言在前后端交互的选择上，之前一直采用的是模板引擎(因为我只负责后端)。而这次的一个算是作业吧，前后端都是我，所以就研究了一下JSON交互在java web的应用(主要是前端)。 优缺点 前后端耦合  模板引擎加载只是将jsp的交互方式移植到html上，前端文件格式改变了，但是jsp中前后端耦合的缺点没有改变。 json交互中，数据通过js&#x2F;jquery动态加载在页面上，数据与页面进行分">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/174825768453.png">
+<meta property="article:published_time" content="2019-10-04T22:14:20.000Z">
+<meta property="article:modified_time" content="2024-04-05T08:41:25.413Z">
+<meta property="article:author" content="cartoon Yu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/174825768453.png">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>JSON工具类的构建(后端版本) | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JSON工具类的构建(后端版本)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-10-05 06:14:20" itemprop="dateCreated datePublished" datetime="2019-10-05T06:14:20+08:00">2019-10-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在前后端交互的选择上，之前一直采用的是模板引擎(因为我只负责后端)。<br>而这次的一个算是作业吧，前后端都是我，所以就研究了一下JSON交互在java web的应用(主要是前端)。</p>
+<h3 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h3><ul>
+<li><p>前后端耦合</p>
+<ul>
+<li>模板引擎加载只是将jsp的交互方式移植到html上，前端文件格式改变了，但是jsp中前后端耦合的缺点没有改变。</li>
+<li>json交互中，数据通过js&#x2F;jquery动态加载在页面上，数据与页面进行分离，页面只是单纯用于展示。</li>
+</ul>
+</li>
+<li><p>数据加载逻辑复用</p>
+<ul>
+<li>模板引擎的方式中，如果有很多相似的页面元素以及一样的数据返回格式，那只是复制粘贴大法了。</li>
+<li>在模板引擎的例子中，只需要定义一套数据加载模型，传入不同的页面元素id以及数据则能实现逻辑复用</li>
+</ul>
+</li>
+<li><p>后端接口的复用<br>  因为我的学习路线的问题，所以我开发过安卓原生一段时间。</p>
+<ul>
+<li>模板引擎式的加载必须使用webView组件加载，且需另进行原生构建时接口也要另外构建。</li>
+<li>json交互，谷歌爸爸鼓励使用json进行交互(一年多前的事，现在不清楚了)，且安卓原生内置GJSON进行json解析与构建，所以可以在原生以及跨平台的构建有很好的平衡。</li>
+</ul>
+</li>
+</ul>
+<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>既然选择了json交互的方式，而java官方据我所知是没有内置对json的支持，Spring在Controller的层面使用RestContrller注解实现对json的支持。<br>但是我个人强迫症很强，我对Contrller(或者说是Presenter)的定义是</p>
+<ul>
+<li>对用户访问的url作页面的映射</li>
+<li>对用户触发的事件进行数据的传递与返回<br>正是这两点的定义，我需要在Service层组合统一格式的结果返回到上层，所以需要第三方json支持。<br>可选择的JSON库有很多，GSON，FastJson，Jackson，根据<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/YdMgNUpxXi-4hSWSql5IgA">对比</a>，我选择为马老师充值一波。</li>
+</ul>
+<h3 id="需求拆分"><a href="#需求拆分" class="headerlink" title="需求拆分"></a>需求拆分</h3><p>我初步定义的需求主要有三个</p>
+<ul>
+<li>Service传递统一处理结果到上层</li>
+<li>无论是单一数据实体或者List型数据处理的结果是一样的</li>
+<li>处理过程是独立的，不依赖于实体类的支持</li>
+</ul>
+<h3 id="格式设计"><a href="#格式设计" class="headerlink" title="格式设计"></a>格式设计</h3><p>在网上看过很多后端返回数据的格式，很多都是返回一个处理的status以及具体的数据，而这个status是根据http状态码进行设定的，因为这次时间比较紧，所以我就采用了这个方案。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;status&quot;: &quot;status&quot;,</span><br><span class="line">    &quot;object&quot;: &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="代码设计"><a href="#代码设计" class="headerlink" title="代码设计"></a>代码设计</h3><p>因为我希望Controller能直接拿到结果，所以构建结果的过程全放在Result类中。<br>而结果构建我主要分为两种：只有状态码(通知处理结果)以及具有返回结果(数据显示)，而根据结果的个人也分为两种：单个数据以及List型数据。</p>
+<h3 id="实际代码"><a href="#实际代码" class="headerlink" title="实际代码"></a>实际代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Getter</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ResultSet</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> JSONObject result;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ResultSet</span><span class="params">()</span>&#123;</span><br><span class="line">        result=<span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化状态码</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> status</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">initStatus</span><span class="params">(String status)</span>&#123;</span><br><span class="line">        result.put(<span class="string">&quot;status&quot;</span>, status);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化状态码以及返回数据</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> status</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> obj</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">initData</span><span class="params">(String status,Object obj)</span>&#123;</span><br><span class="line">        initStatus(status);</span><br><span class="line">        <span class="keyword">if</span>(obj <span class="keyword">instanceof</span> List)&#123;</span><br><span class="line">            List list=(List)obj;</span><br><span class="line">            JSONArray array=<span class="keyword">new</span> <span class="title class_">JSONArray</span>();</span><br><span class="line">            <span class="keyword">for</span>(Object object:list)&#123;</span><br><span class="line">                array.add(putObjectToJSON(object));</span><br><span class="line">            &#125;</span><br><span class="line">            result.put(<span class="string">&quot;object&quot;</span>,array);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            result.put(<span class="string">&quot;object&quot;</span>,putObjectToJSON(obj));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将单个Object放入json文件中</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> obj</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> JSONObject <span class="title function_">putObjectToJSON</span><span class="params">(Object obj)</span>&#123;</span><br><span class="line">        JSONObject result=<span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">        Field[] fields=obj.getClass().getDeclaredFields();</span><br><span class="line">        <span class="keyword">for</span>(Field field:fields)&#123;</span><br><span class="line">            field.setAccessible(<span class="literal">true</span>);</span><br><span class="line">            String fieldName=field.getType().getSimpleName();</span><br><span class="line">            <span class="keyword">if</span>(fieldName.equals(<span class="string">&quot;Department&quot;</span>)||fieldName.equals(<span class="string">&quot;Job&quot;</span>))&#123;</span><br><span class="line">                JSONObject tempJson=<span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="type">Object</span> <span class="variable">tempObject</span> <span class="operator">=</span> field.get(obj);</span><br><span class="line">                    Field[] tempFields=tempObject.getClass().getDeclaredFields();</span><br><span class="line">                    <span class="keyword">for</span>(Field tempField:tempFields)&#123;</span><br><span class="line">                        tempField.setAccessible(<span class="literal">true</span>);</span><br><span class="line">                        tempJson.put(tempField.getName(),tempField.get(tempObject));</span><br><span class="line">                        tempField.setAccessible(<span class="literal">false</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span>(fieldName.equals(<span class="string">&quot;Department&quot;</span>))&#123;</span><br><span class="line">                    result.put(<span class="string">&quot;depart&quot;</span>,tempJson);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> &#123;</span><br><span class="line">                    result.put(<span class="string">&quot;job&quot;</span>,tempJson);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    result.put(field.getName(),field.get(obj));</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            field.setAccessible(<span class="literal">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="代码思路"><a href="#代码思路" class="headerlink" title="代码思路"></a>代码思路</h3><ol>
+<li>Service通过initStatus&#x2F;initData传入数据&#x2F;状态码进行对象的生成</li>
+<li>Controller通过result的getter方法获取处理结果</li>
+<li>单个数据以及List数据的处理<ol>
+<li>单个对象直接通过putObjectToJSON进行处理</li>
+<li>List数据通过对象类型判断，向下转型，遍历元素形成JSONArray进行处理，对元素处理的方法也是采用putObjectToJSON</li>
+</ol>
+</li>
+<li>嵌套对象的处理 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public class Employee &#123;</span><br><span class="line"></span><br><span class="line">   private int id;</span><br><span class="line"></span><br><span class="line">   private Department depart;</span><br><span class="line"></span><br><span class="line">   private Job job;</span><br><span class="line"></span><br><span class="line">   private String name;</span><br><span class="line"></span><br><span class="line">	..................</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>通过反射获取对象的所有成员变量类型以及对应的值</li>
+<li>遇到上述bean类含有嵌套自定义对象时，递归生成json文件加入到结果json中</li>
+</ol>
+</li>
+</ol>
+<h3 id="结果演示"><a href="#结果演示" class="headerlink" title="结果演示"></a>结果演示</h3><p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/174825768453.png"></p>
+<p>​                         （左为单object型，右为List型）</p>
+<h3 id="不足之处"><a href="#不足之处" class="headerlink" title="不足之处"></a>不足之处</h3><ol>
+<li>状态码的设置应该采用枚举类的赋值，能更好的约束返回的状态码</li>
+<li>在对象转换方面，应该采用配置扫描的方式。在配置文件中写入bean的包所在，在嵌套对象转换时通过扫描配置文件的信息判断</li>
+<li>在嵌套对象的转换方面，只是做了一层的嵌套转换，更多层的没有考虑到，之后会再重构的</li>
+<li>对异常处理方面，只是简单的输出错误信息。应该对错误信息进行进一步的处理</li>
+</ol>
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>因为这次时间比较赶，从项目的立项到成品的建立花了5天时间，所以注意到很多细节，但是没有去处理。<br>有想过之后有时间的话将这个工具类的细节完善起来，形成jar包供自己或者供开源。</p>
+<h3 id="相关连接"><a href="#相关连接" class="headerlink" title="相关连接"></a>相关连接</h3><p>这只是后台对结果的统一处理，我另外写了一篇文章：<a href="%5Bhttps://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%89%8D%E7%AB%AF%E7%89%88%E6%9C%AC/%5D(https://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%89%8D%E7%AB%AF%E7%89%88%E6%9C%AC/)">JSON工具类的构建(前端版本)</a>，配合使用效果更佳哦~</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC/">https://cartoonyu.github.io/cartoon-blog/post/json/json工具类的构建后端版本/</a></strong></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC)/" title="JSON工具类的构建(后端版本)">https://cartoonyu.github.io/2019/10/05/JSON/JSON工具类的构建(后端版本)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/09/29/JAVA/Queue%E4%B8%8EDeque%E7%9A%84%E5%8C%BA%E5%88%AB/" rel="prev" title="Queue与Deque的区别">
+      <i class="fa fa-chevron-left"></i> Queue与Deque的区别
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%89%8D%E7%AB%AF%E7%89%88%E6%9C%AC)/" rel="next" title="JSON工具类的构建(前端版本)">
+      JSON工具类的构建(前端版本) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">优缺点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94"><span class="nav-number">3.</span> <span class="nav-text">对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E6%B1%82%E6%8B%86%E5%88%86"><span class="nav-number">4.</span> <span class="nav-text">需求拆分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.</span> <span class="nav-text">格式设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1"><span class="nav-number">6.</span> <span class="nav-text">代码设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E4%BB%A3%E7%A0%81"><span class="nav-number">7.</span> <span class="nav-text">实际代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E6%80%9D%E8%B7%AF"><span class="nav-number">8.</span> <span class="nav-text">代码思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E6%BC%94%E7%A4%BA"><span class="nav-number">9.</span> <span class="nav-text">结果演示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E8%B6%B3%E4%B9%8B%E5%A4%84"><span class="nav-number">10.</span> <span class="nav-text">不足之处</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">11.</span> <span class="nav-text">后记</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E8%BF%9E%E6%8E%A5"><span class="nav-number">12.</span> <span class="nav-text">相关连接</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : 'f1d1cb943a83268c69638bad68138ec9',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

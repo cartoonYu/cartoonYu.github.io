@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于cartoon的博客&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:https:&#x2F;&#x2F;cartoonyu.github.io&#x2F;cartoon-blog &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;这段时间把疯狂JAVA再看了一遍">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stack，ArrayDeque，LinkedList的区别">
+<meta property="og:url" content="https://cartoonyu.github.io/2019/05/08/JAVA/Stack%EF%BC%8CArrayDeque%EF%BC%8CLinkedList%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于cartoon的博客&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:https:&#x2F;&#x2F;cartoonyu.github.io&#x2F;cartoon-blog &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;这段时间把疯狂JAVA再看了一遍">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1398594969-5cce5e9ada73d_articlex.jpg">
+<meta property="article:published_time" content="2019-05-08T05:38:27.000Z">
+<meta property="article:modified_time" content="2024-04-05T08:41:25.413Z">
+<meta property="article:author" content="cartoon Yu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1398594969-5cce5e9ada73d_articlex.jpg">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2019/05/08/JAVA/Stack%EF%BC%8CArrayDeque%EF%BC%8CLinkedList%E7%9A%84%E5%8C%BA%E5%88%AB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>Stack，ArrayDeque，LinkedList的区别 | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/JAVA/Stack%EF%BC%8CArrayDeque%EF%BC%8CLinkedList%E7%9A%84%E5%8C%BA%E5%88%AB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Stack，ArrayDeque，LinkedList的区别
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-05-08 13:38:27" itemprop="dateCreated datePublished" datetime="2019-05-08T13:38:27+08:00">2019-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;这段时间把疯狂JAVA再看了一遍，发现Stack，ArrayDeque，LinkedList都可以作为栈使用，所以就稍微从性能以及实现的细节对比这三者的区别。</p>
+<h2 id="类继承树"><a href="#类继承树" class="headerlink" title="类继承树"></a>类继承树</h2><p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1398594969-5cce5e9ada73d_articlex.jpg"></p>
+<h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><h3 id="底层数据存储方式"><a href="#底层数据存储方式" class="headerlink" title="底层数据存储方式"></a>底层数据存储方式</h3><table>
+<thead>
+<tr>
+<th>&amp;nbsp;</th>
+<th>存储方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Stack</td>
+<td>长度为10的数组</td>
+</tr>
+<tr>
+<td>ArrayDeque</td>
+<td>长度为16的数组</td>
+</tr>
+<tr>
+<td>LinkedList</td>
+<td>链表</td>
+</tr>
+</tbody></table>
+<h3 id="方法参照表"><a href="#方法参照表" class="headerlink" title="方法参照表"></a>方法参照表</h3><table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>ArrayDeque</th>
+<th>LinkedList</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>push(e)</td>
+<td>addFirst(e)&#x2F;offerFirst(e)</td>
+<td>addFirst(e)&#x2F;offerFirst(e)</td>
+</tr>
+<tr>
+<td>pop()</td>
+<td>removeFirst()&#x2F;pollFirst()</td>
+<td>removeFirst()&#x2F;pollFirst()</td>
+</tr>
+<tr>
+<td>peek()</td>
+<td>getFirst()&#x2F;peekFirst()</td>
+<td>getFirst()&#x2F;peekFirst()</td>
+</tr>
+</tbody></table>
+<h3 id="线程安全"><a href="#线程安全" class="headerlink" title="线程安全"></a>线程安全</h3><table>
+<thead>
+<tr>
+<th>&amp;nbsp;</th>
+<th>线程安全</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Stack</td>
+<td>线程同步</td>
+</tr>
+<tr>
+<td>ArrayDeque</td>
+<td>线程不同步</td>
+</tr>
+<tr>
+<td>LinkedList</td>
+<td>线程不同步</td>
+</tr>
+</tbody></table>
+<h3 id="性能选项"><a href="#性能选项" class="headerlink" title="性能选项"></a>性能选项</h3><p>&amp;nbsp;&amp;nbsp;&amp;nbsp;通常情况下，不推荐使用Vector以及其子类Stack</p>
+<h4 id="1-需要线程同步"><a href="#1-需要线程同步" class="headerlink" title="1.需要线程同步"></a>1.需要线程同步</h4><p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;使用Collections工具类中synchronizedXxx()将线程不同步的ArrayDeque以及LinkedList转换成线程同步。</p>
+<h4 id="2-频繁的插入、删除操作：LinkedList"><a href="#2-频繁的插入、删除操作：LinkedList" class="headerlink" title="2.频繁的插入、删除操作：LinkedList"></a>2.频繁的插入、删除操作：LinkedList</h4><h4 id="3-频繁的随机访问操作：ArrayDeque"><a href="#3-频繁的随机访问操作：ArrayDeque" class="headerlink" title="3.频繁的随机访问操作：ArrayDeque"></a>3.频繁的随机访问操作：ArrayDeque</h4><h4 id="4-未知的初始数据量：LinkedList"><a href="#4-未知的初始数据量：LinkedList" class="headerlink" title="4.未知的初始数据量：LinkedList"></a>4.未知的初始数据量：LinkedList</h4>
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2019/05/08/JAVA/Stack%EF%BC%8CArrayDeque%EF%BC%8CLinkedList%E7%9A%84%E5%8C%BA%E5%88%AB/" title="Stack，ArrayDeque，LinkedList的区别">https://cartoonyu.github.io/2019/05/08/JAVA/Stack，ArrayDeque，LinkedList的区别/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/05/08/Ubuntu/JDK%E5%9C%A8Win10%E4%B8%8EUbuntu%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/" rel="prev" title="JDK在Win10与Ubuntu下的安装与配置">
+      <i class="fa fa-chevron-left"></i> JDK在Win10与Ubuntu下的安装与配置
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/05/08/Assorted/%E4%BD%8D%E8%BF%90%E7%AE%97%E7%AC%A6%E5%92%8C%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E7%AC%A6%E7%9A%84%E5%8C%BA%E5%88%AB/" rel="next" title="&与&&，|与||的区别">
+      &与&&，|与||的区别 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E7%BB%A7%E6%89%BF%E6%A0%91"><span class="nav-number">1.</span> <span class="nav-text">类继承树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%BA%E5%88%AB"><span class="nav-number">2.</span> <span class="nav-text">区别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F"><span class="nav-number">2.1.</span> <span class="nav-text">底层数据存储方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E5%8F%82%E7%85%A7%E8%A1%A8"><span class="nav-number">2.2.</span> <span class="nav-text">方法参照表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8"><span class="nav-number">2.3.</span> <span class="nav-text">线程安全</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E9%80%89%E9%A1%B9"><span class="nav-number">2.4.</span> <span class="nav-text">性能选项</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E9%9C%80%E8%A6%81%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5"><span class="nav-number">2.4.1.</span> <span class="nav-text">1.需要线程同步</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E9%A2%91%E7%B9%81%E7%9A%84%E6%8F%92%E5%85%A5%E3%80%81%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C%EF%BC%9ALinkedList"><span class="nav-number">2.4.2.</span> <span class="nav-text">2.频繁的插入、删除操作：LinkedList</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E9%A2%91%E7%B9%81%E7%9A%84%E9%9A%8F%E6%9C%BA%E8%AE%BF%E9%97%AE%E6%93%8D%E4%BD%9C%EF%BC%9AArrayDeque"><span class="nav-number">2.4.3.</span> <span class="nav-text">3.频繁的随机访问操作：ArrayDeque</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E6%9C%AA%E7%9F%A5%E7%9A%84%E5%88%9D%E5%A7%8B%E6%95%B0%E6%8D%AE%E9%87%8F%EF%BC%9ALinkedList"><span class="nav-number">2.4.4.</span> <span class="nav-text">4.未知的初始数据量：LinkedList</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : '200d627b6a9c891188ace344dab6ceb7',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

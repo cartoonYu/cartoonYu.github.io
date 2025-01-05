@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="现象在线上环境排查问题时，某个线程池在某个时间点新建线程达到设定的最大线程数 maximumPoolSize，后续流量降低后当前线程数仍未回落，仍然为最大线程数，阻塞队列中有任务，但是活跃线程数显著减少。 之前的认知固有的认知中，线程池运行原理：java.util.concurrent.ThreadPoolExecutor#execute  线程池内部维护 corePoolSize 个线程 任务提">
+<meta property="og:type" content="article">
+<meta property="og:title" content="keepAliveTime 含义">
+<meta property="og:url" content="https://cartoonyu.github.io/2025/01/05/JAVA/keepAliveTime%20%E5%90%AB%E4%B9%89/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="现象在线上环境排查问题时，某个线程池在某个时间点新建线程达到设定的最大线程数 maximumPoolSize，后续流量降低后当前线程数仍未回落，仍然为最大线程数，阻塞队列中有任务，但是活跃线程数显著减少。 之前的认知固有的认知中，线程池运行原理：java.util.concurrent.ThreadPoolExecutor#execute  线程池内部维护 corePoolSize 个线程 任务提">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20250105161217.png">
+<meta property="article:published_time" content="2025-01-05T00:00:06.000Z">
+<meta property="article:modified_time" content="2025-01-05T08:27:48.542Z">
+<meta property="article:author" content="cartoon Yu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20250105161217.png">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2025/01/05/JAVA/keepAliveTime%20%E5%90%AB%E4%B9%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>keepAliveTime 含义 | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2025/01/05/JAVA/keepAliveTime%20%E5%90%AB%E4%B9%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          keepAliveTime 含义
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2025-01-05 08:00:06 / Modified: 16:27:48" itemprop="dateCreated datePublished" datetime="2025-01-05T08:00:06+08:00">2025-01-05</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="现象"><a href="#现象" class="headerlink" title="现象"></a>现象</h2><p>在线上环境排查问题时，某个线程池在某个时间点新建线程达到设定的最大线程数 maximumPoolSize，后续流量降低后当前线程数仍未回落，仍然为最大线程数，阻塞队列中有任务，但是活跃线程数显著减少。</p>
+<h2 id="之前的认知"><a href="#之前的认知" class="headerlink" title="之前的认知"></a>之前的认知</h2><p>固有的认知中，线程池运行原理：<code>java.util.concurrent.ThreadPoolExecutor#execute</code></p>
+<ol>
+<li>线程池内部维护 corePoolSize 个线程</li>
+<li>任务提交后，若核心线程都已被占用，则添加到阻塞队列</li>
+<li>阻塞队列已满，则新建线程直到线程数到达 maximumPoolSize</li>
+<li>若阻塞队列已满，并且线程数到达 maximumPoolSize，则执行拒绝策略</li>
+<li>超过 corePoolSize 部分的空闲线程，到达 keepAliveTime 后，进行销毁。</li>
+</ol>
+<h2 id="冲突"><a href="#冲突" class="headerlink" title="冲突"></a>冲突</h2><p>认知第五点中：超过 corePoolSize 部分的空闲线程，到达 keepAliveTime 后，进行销毁。明显与现象不符。现象肯定没问题的，就是认知有问题了：超过 corePoolSize 部分的空闲线程，到达 keepAliveTime 后，至少不会马上销毁。</p>
+<h2 id="现实与认知的问题"><a href="#现实与认知的问题" class="headerlink" title="现实与认知的问题"></a>现实与认知的问题</h2><ol>
+<li>超过 corePoolSize 部分的空闲线程，到达 keepAliveTime 后，会不会销毁？</li>
+<li>销毁的时机是？</li>
+<li>为什么线程池中大多为休眠线程？线程池的线程数仍为最大线程数？</li>
+</ol>
+<h2 id="重塑认知"><a href="#重塑认知" class="headerlink" title="重塑认知"></a>重塑认知</h2><p>答案都在源码内</p>
+<h3 id="ThreadPoolExecutor-执行任务流程"><a href="#ThreadPoolExecutor-执行任务流程" class="headerlink" title="ThreadPoolExecutor 执行任务流程"></a>ThreadPoolExecutor 执行任务流程</h3><h3 id="线程池使用-demo"><a href="#线程池使用-demo" class="headerlink" title="线程池使用 demo"></a>线程池使用 demo</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 10, 100, TimeUnit.MINUTES, new ArrayBlockingQueue&lt;&gt;(1000));</span><br><span class="line">        threadPoolExecutor.execute(() -&gt; System.out.println(&quot;print in thread&quot;));</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h3><p><code>java.util.concurrent.ThreadPoolExecutor#execute</code></p>
+<p>流程就是之前认知中 1 - 4 点，在第三点中蕴含一个重要变量：<code>java.util.concurrent.ThreadPoolExecutor#workers</code>，这个就是ThreadPoolExecutor 管理线程的对象</p>
+<h3 id="workers-移除流程"><a href="#workers-移除流程" class="headerlink" title="workers 移除流程"></a>workers 移除流程</h3><p>源码上看，只有以下两个方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">java.util.concurrent.ThreadPoolExecutor#addWorkerFailed</span><br><span class="line">java.util.concurrent.ThreadPoolExecutor#processWorkerExit</span><br></pre></td></tr></table></figure>
+
+<p>望文生义，addWorkerFailed 作用为添加 worker 后的失败补偿动作，可以忽略这个方法。</p>
+<p>所以正常的销毁动作，肯定是在 processWorkerExit 中。</p>
+<h3 id="processWorkerExit-执行流程"><a href="#processWorkerExit-执行流程" class="headerlink" title="processWorkerExit 执行流程"></a>processWorkerExit 执行流程</h3><h4 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h4><p>仅在<code>java.util.concurrent.ThreadPoolExecutor#runWorker</code> 中 finally 执行</p>
+<p>而 runWorker 则是任务执行的底层方法，那么这意味着：任务执行完，满足某几个前提条件就会销毁线程。那么前提条件是什么呢？</p>
+<h4 id="runWorker-执行流程"><a href="#runWorker-执行流程" class="headerlink" title="runWorker 执行流程"></a>runWorker 执行流程</h4><ol>
+<li>while 循环调用 <code>java.util.concurrent.ThreadPoolExecutor#getTask</code> 获取任务<ol>
+<li>获取到任务后，走真实执行任务流程，beforeExecute&#x2F;run&#x2F;afterExecute</li>
+<li>获取不到任务，则到 processWorkerExit 执行</li>
+</ol>
+</li>
+</ol>
+<h4 id="getTask-执行流程"><a href="#getTask-执行流程" class="headerlink" title="getTask 执行流程"></a>getTask 执行流程</h4><ol>
+<li>使用当前 worker 数与核心线程数关系判定变量 timed</li>
+<li>根据 timed 判定 <code>timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take()</code></li>
+</ol>
+<p>keepAliveTime 第一次出现，并且是用于在当前 worker 数大于核心线程数情况下从阻塞队列中获取元素。</p>
+<p>那么，控制 processWorkerExit 执行的前提条件：当前 worker 数大于核心线程数，并且从阻塞队列经过 keepAliveTime 拿不到任务。</p>
+<p>但这个前提条件明显跟现象不符，那肯定是 <code>workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS)</code> 中被阻塞了，导致实际获取任务时间 &gt; keepAliveTime。</p>
+<h4 id="workQueue-poll-执行流程（以-ArrayBlockingQueue-为例）"><a href="#workQueue-poll-执行流程（以-ArrayBlockingQueue-为例）" class="headerlink" title="workQueue.poll 执行流程（以 ArrayBlockingQueue 为例）"></a>workQueue.poll 执行流程（以 ArrayBlockingQueue 为例）</h4><ol>
+<li>获取 ArrayBlockingQueue 全局锁</li>
+<li>当队列元素个数 &#x3D; 0， 则 await keepAliveTime 时间</li>
+<li>队列元素个数 !&#x3D; 0，出队元素</li>
+<li>释放 ArrayBlockingQueue 全局锁</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public E poll(long timeout, TimeUnit unit) throws InterruptedException &#123;</span><br><span class="line">        long nanos = unit.toNanos(timeout);</span><br><span class="line">        final ReentrantLock lock = this.lock;</span><br><span class="line">        lock.lockInterruptibly();</span><br><span class="line">        try &#123;</span><br><span class="line">            while (count == 0) &#123;</span><br><span class="line">                if (nanos &lt;= 0)</span><br><span class="line">                    return null;</span><br><span class="line">                nanos = notEmpty.awaitNanos(nanos);</span><br><span class="line">            &#125;</span><br><span class="line">            return dequeue();</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="真相"><a href="#真相" class="headerlink" title="真相"></a>真相</h2><p>从workQueue.poll 执行流程中，能明显看到线程 await 的前提是获取到队列的全局锁，并且队列元素 &#x3D; 0。</p>
+<p>整理一遍就是：</p>
+<p>当线程获取到队列全局锁，并且当前队列为空，await keepAliveTime 后，若当前队列为空，则执行销毁方法。</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20250105161217.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line"></span><br><span class="line">&quot;Thread&quot; -&gt; &quot;BlockingQueue&quot;: pool task</span><br><span class="line">&quot;Thread&quot; -&gt; &quot;BlockingQueue&quot;: get global ReentrantLock</span><br><span class="line">alt get global ReentrantLock success</span><br><span class="line">    alt BlockingQueue size = 0</span><br><span class="line">        &quot;Thread&quot; -&gt; &quot;Condition&quot;: await keepAliveTime</span><br><span class="line">        &quot;BlockingQueue&quot; -&gt; &quot;Thread&quot;: non task，execute processWorkerExit method</span><br><span class="line">    else</span><br><span class="line">        &quot;BlockingQueue&quot; -&gt; &quot;Thread&quot;: first task in queue</span><br><span class="line">        &quot;Thread&quot; -&gt; &quot;Thread&quot;: keep execute task</span><br><span class="line">    end</span><br><span class="line">else </span><br><span class="line">    &quot;Thread&quot; -&gt; &quot;BlockingQueue&quot;: keep acquire ReentrantLock</span><br><span class="line">end</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+
+
+<p>那么上述提到的两个问题</p>
+<ol>
+<li>超过 corePoolSize 部分的空闲线程，到达 keepAliveTime 后，会不会销毁？</li>
+<li>销毁的时机是？</li>
+<li>为什么线程池中大多为休眠线程？线程池的线程数仍为最大线程数？</li>
+</ol>
+<p>就有了答案</p>
+<ol>
+<li><p>超过 corePoolSize 部分的空闲线程，到达 keepAliveTime 后，有可能销毁，前提是拿到队列的全局锁。</p>
+</li>
+<li><p>销毁的时机是当前线程获取到队列全局锁，并且队列元素 &#x3D; 0，并且 await 后队列元素仍然为 0</p>
+</li>
+<li><p>因为线上提交任务刚好够核心线程消费，并且残留少数任务在阻塞队列中。在并发情况下，大部分线程都 await，线程池只能新增 worker 处理了。</p>
+</li>
+</ol>
+<h2 id="自言自语"><a href="#自言自语" class="headerlink" title="自言自语"></a>自言自语</h2><h3 id="怎么解决当前线程数-x3D-最大线程数，并且活跃线程较少的情况？"><a href="#怎么解决当前线程数-x3D-最大线程数，并且活跃线程较少的情况？" class="headerlink" title="怎么解决当前线程数 &#x3D; 最大线程数，并且活跃线程较少的情况？"></a>怎么解决当前线程数 &#x3D; 最大线程数，并且活跃线程较少的情况？</h3><ol>
+<li>调高 corePoolSize ，使线程池不新增 corePoolSize 之外的线程。</li>
+<li>调低 keepAliveTime &amp; TimeUnit 的值，使休眠线程快速被销毁。</li>
+</ol>
+<p>在商业开发的角度上，比较难精准实现。</p>
+<ol>
+<li>业务发展速度很快， corePoolSize 在将来的一段时间内就不适合了。</li>
+<li>加快休眠线程的销毁，意味着存在频繁新建线程的问题，会影响系统稳定性。</li>
+</ol>
+<h3 id="为什么-await-keepAliveTime后不直接销毁？还尝试出队元素？"><a href="#为什么-await-keepAliveTime后不直接销毁？还尝试出队元素？" class="headerlink" title="为什么 await keepAliveTime后不直接销毁？还尝试出队元素？"></a>为什么 await keepAliveTime后不直接销毁？还尝试出队元素？</h3><p>这就回到 java 线程与操作系统线程的映射关系。</p>
+<p>线程模型有三种：一对一，多对一，一对多。java 在大多数平台上都是一对一。</p>
+<ol>
+<li>如果直接销毁，核心线程处理不过来情况下，线程池会频繁销毁&#x2F;新建线程，消耗系统的资源。</li>
+<li>尝试出队元素，double check 线程池的负载，负载高则继续处理，负载较低则销毁线程，达到节省资源的目的。</li>
+</ol>
+<h3 id="keepAliveTime-的理解"><a href="#keepAliveTime-的理解" class="headerlink" title="keepAliveTime 的理解"></a>keepAliveTime 的理解</h3><p>源码中的注释</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">when the number of threads is greater than the core, this is the maximum time that excess idle threads will wait for new tasks before terminating.</span><br><span class="line"></span><br><span class="line">当线程数大于 Core 数时，这是多余的空闲线程在终止之前等待新任务的最长时间。</span><br></pre></td></tr></table></figure>
+
+<p>之前以为是线程数大于 Core 数时，空闲线程的存活时间。过了 keepAliveTime 就执行销毁。</p>
+<p>现在认识到：线程数大于 Core 数时，空闲线程的存活时间 &gt;&#x3D; keepAliveTime （没获取到队列锁的情况下），并且销毁前 double check 是否有任务，没有才执行销毁。</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/">cartoon的博客</a></strong></p>
+<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/">https://cartoonyu.github.io</a></strong></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2025/01/05/JAVA/keepAliveTime%20%E5%90%AB%E4%B9%89/" title="keepAliveTime 含义">https://cartoonyu.github.io/2025/01/05/JAVA/keepAliveTime 含义/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/11/05/cache/Redis%20%E7%9A%84%E4%B8%89%E7%A7%8D%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F/" rel="prev" title="Redis 的三种部署模式">
+      <i class="fa fa-chevron-left"></i> Redis 的三种部署模式
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E8%B1%A1"><span class="nav-number">1.</span> <span class="nav-text">现象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%8B%E5%89%8D%E7%9A%84%E8%AE%A4%E7%9F%A5"><span class="nav-number">2.</span> <span class="nav-text">之前的认知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B2%E7%AA%81"><span class="nav-number">3.</span> <span class="nav-text">冲突</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E5%AE%9E%E4%B8%8E%E8%AE%A4%E7%9F%A5%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">现实与认知的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E5%A1%91%E8%AE%A4%E7%9F%A5"><span class="nav-number">5.</span> <span class="nav-text">重塑认知</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ThreadPoolExecutor-%E6%89%A7%E8%A1%8C%E4%BB%BB%E5%8A%A1%E6%B5%81%E7%A8%8B"><span class="nav-number">5.1.</span> <span class="nav-text">ThreadPoolExecutor 执行任务流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8-demo"><span class="nav-number">5.2.</span> <span class="nav-text">线程池使用 demo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">5.3.</span> <span class="nav-text">执行流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#workers-%E7%A7%BB%E9%99%A4%E6%B5%81%E7%A8%8B"><span class="nav-number">5.4.</span> <span class="nav-text">workers 移除流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#processWorkerExit-%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">5.5.</span> <span class="nav-text">processWorkerExit 执行流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">5.5.1.</span> <span class="nav-text">使用场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#runWorker-%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">5.5.2.</span> <span class="nav-text">runWorker 执行流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#getTask-%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">5.5.3.</span> <span class="nav-text">getTask 执行流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#workQueue-poll-%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%EF%BC%88%E4%BB%A5-ArrayBlockingQueue-%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="nav-number">5.5.4.</span> <span class="nav-text">workQueue.poll 执行流程（以 ArrayBlockingQueue 为例）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9C%9F%E7%9B%B8"><span class="nav-number">6.</span> <span class="nav-text">真相</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E8%A8%80%E8%87%AA%E8%AF%AD"><span class="nav-number">7.</span> <span class="nav-text">自言自语</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%E6%95%B0-x3D-%E6%9C%80%E5%A4%A7%E7%BA%BF%E7%A8%8B%E6%95%B0%EF%BC%8C%E5%B9%B6%E4%B8%94%E6%B4%BB%E8%B7%83%E7%BA%BF%E7%A8%8B%E8%BE%83%E5%B0%91%E7%9A%84%E6%83%85%E5%86%B5%EF%BC%9F"><span class="nav-number">7.1.</span> <span class="nav-text">怎么解决当前线程数 &#x3D; 最大线程数，并且活跃线程较少的情况？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-await-keepAliveTime%E5%90%8E%E4%B8%8D%E7%9B%B4%E6%8E%A5%E9%94%80%E6%AF%81%EF%BC%9F%E8%BF%98%E5%B0%9D%E8%AF%95%E5%87%BA%E9%98%9F%E5%85%83%E7%B4%A0%EF%BC%9F"><span class="nav-number">7.2.</span> <span class="nav-text">为什么 await keepAliveTime后不直接销毁？还尝试出队元素？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#keepAliveTime-%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">7.3.</span> <span class="nav-text">keepAliveTime 的理解</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : '173d9ab6146f00f0e6f165ecabf4bb0a',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

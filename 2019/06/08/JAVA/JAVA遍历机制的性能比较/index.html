@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于cartoon的博客&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:https:&#x2F;&#x2F;cartoonyu.github.io&#x2F;cartoon-blog&#x2F;post&#x2F;java&#x2F;java%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA遍历机制的性能的比较">
+<meta property="og:url" content="https://cartoonyu.github.io/2019/06/08/JAVA/JAVA%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于cartoon的博客&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:https:&#x2F;&#x2F;cartoonyu.github.io&#x2F;cartoon-blog&#x2F;post&#x2F;java&#x2F;java%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-06-08T07:58:58.000Z">
+<meta property="article:modified_time" content="2024-04-05T08:41:25.412Z">
+<meta property="article:author" content="cartoon Yu">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2019/06/08/JAVA/JAVA%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>JAVA遍历机制的性能的比较 | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/06/08/JAVA/JAVA%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JAVA遍历机制的性能的比较
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-06-08 15:58:58" itemprop="dateCreated datePublished" datetime="2019-06-08T15:58:58+08:00">2019-06-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/java/java%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/">https://cartoonyu.github.io/cartoon-blog/post/java/java%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/</a></strong></p>
+<h3 id="缘由"><a href="#缘由" class="headerlink" title="缘由"></a>缘由</h3><p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;近段时间在写leetcode的<a target="_blank" rel="noopener" href="https://github.com/cartoonYu/LeetCodeSolution/blob/master/Solution/src/Solution860.java">Lemonade Change</a>时候，发现了for循环与forEach循环的耗时是不一致的，在提交记录上面差了一倍……</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;平常开发绝大部分业务逻辑的实现都需要遍历机制的帮忙，虽说也有注意到各数据结构操作的性能比较，但是忽视了遍历机制性能的差异。原本前两天就开始动手写，拖延症……</p>
+<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;现阶段我所知道JAVA遍历机制有三种</p>
+<ul>
+<li><p>for循环</p>
+</li>
+<li><p>forEach循环</p>
+</li>
+<li><p>Iterator循环</p>
+</li>
+</ul>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;JAVA数据结构千千万，但是大部分都是对基础数据结构的封装，比较HashMap依赖于Node数组，LinkedList底层是链表，ArrayList对数组的再封装……扯远了</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;总结来说，JAVA的基础数据结构，我觉得有两种</p>
+<ul>
+<li>数组</li>
+<li>链表</li>
+</ul>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果是加上Hash(Hash的操作与数组以及链表不太一致)，就是三种</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;因为平常开发大部分都优先选择包装后的数据结构，所以下面我会使用</p>
+<ul>
+<li>ArrayList(包装后的数组)</li>
+<li>LinkedList(包装后的链表)</li>
+<li>HashSet(包装后的Hash类型数组)</li>
+</ul>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;这三种数据结构在遍历机制不同的时候时间的差异</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;可能有人对我为什么不对比HashMap呢，因为JAVA设计中，是先实现了Map，再实现Set。如果你有阅读过源码就会发现:每个Set子类的实现中，都有一个序列化后的Map对应属性实现，而因为Hash的查找时间复杂度为O(1)，得出key后查找value的时间大致是一致的，所以我不对比HashMap。</p>
+<p><em><strong>题外话</strong></em></p>
+<p><em><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;我在阅读《疯狂JAVA》读到:JAVA的设计者将Map的内部entry数组中的value设为null进而实现了Set。因为我是以源码以及官方文档为准，具体我不清楚正确与否，但是因为Hash中的key互不相同，Set中元素也互不相同，所以我认为这个观点是正确的。</strong></em></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;为了测试的公平性，我会采取以下的限定</p>
+<ul>
+<li>每种数据结构的大小都设置三种量级<ul>
+<li>10</li>
+<li>100</li>
+<li>1000</li>
+</ul>
+</li>
+<li>元素都采用随机数生成</li>
+<li>遍历进行操作都为输出当前元素的值</li>
+</ul>
+<p><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;注:时间开销受本地环境的影响，可能测量值会出现变化，但是总体上比例是正确的</strong></p>
+<h4 id="ArrayList的比较"><a href="#ArrayList的比较" class="headerlink" title="ArrayList的比较"></a>ArrayList的比较</h4><ul>
+<li><p>代码</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line">public class TextArray &#123;</span><br><span class="line"></span><br><span class="line">    private static Random random;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list1;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list2;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list3;</span><br><span class="line"></span><br><span class="line">    public static void execute()&#123;</span><br><span class="line">        random=new Random();</span><br><span class="line">        initArray();</span><br><span class="line">        testForWith10Object();</span><br><span class="line">        testForEachWith10Object();</span><br><span class="line">        testIteratorWith10Object();</span><br><span class="line">        testForWith100Object();</span><br><span class="line">        testForEachWith100Object();</span><br><span class="line">        testIteratorWith100Object();</span><br><span class="line">        testForWith1000Object();</span><br><span class="line">        testForEachWith1000Object();</span><br><span class="line">        testIteratorWith1000Object();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith10Object()&#123;</span><br><span class="line">        printFor(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith100Object()&#123;</span><br><span class="line">        printFor(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith1000Object()&#123;</span><br><span class="line">        printFor(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith10Object()&#123;</span><br><span class="line">        printForeach(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith100Object()&#123;</span><br><span class="line">        printForeach(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith1000Object()&#123;</span><br><span class="line">        printForeach(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith10Object() &#123;</span><br><span class="line">        printIterator(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith100Object() &#123;</span><br><span class="line">        printIterator(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith1000Object() &#123;</span><br><span class="line">        printIterator(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printFor(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int i=0,length=list.size();i&lt;length;i++)&#123;</span><br><span class="line">            System.out.print(list.get(i)+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;for for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printForeach(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int temp:list)&#123;</span><br><span class="line">            System.out.print(temp+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;foreach for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printIterator(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        Iterator&lt;Integer&gt; it=list.iterator();</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        while(it.hasNext())&#123;</span><br><span class="line">            System.out.print(it.next()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;iterator for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void initArray()&#123;</span><br><span class="line">        list1=new ArrayList&lt;&gt;();</span><br><span class="line">        list2=new ArrayList&lt;&gt;();</span><br><span class="line">        list3=new ArrayList&lt;&gt;();</span><br><span class="line">        for(int i=0;i&lt;10;i++)&#123;</span><br><span class="line">            list1.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;100;i++)&#123;</span><br><span class="line">            list2.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;1000;i++)&#123;</span><br><span class="line">            list3.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>输出(忽略对元素的输出)</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">for for 10:1ms</span><br><span class="line">foreach for 10:0ms</span><br><span class="line">iterator for 10:2ms</span><br><span class="line"></span><br><span class="line">for for 100:5ms</span><br><span class="line">foreach for 100:4ms</span><br><span class="line">iterator for 100:12ms</span><br><span class="line"></span><br><span class="line">for for 1000:33ms</span><br><span class="line">foreach for 1000:7ms</span><br><span class="line">iterator for 1000:16ms</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>10</th>
+<th>100</th>
+<th>1000</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>for</td>
+<td>1ms</td>
+<td>5ms</td>
+<td>33ms</td>
+</tr>
+<tr>
+<td>forEach</td>
+<td>0ms</td>
+<td>4ms</td>
+<td>7ms</td>
+</tr>
+<tr>
+<td>Iterator</td>
+<td>2ms</td>
+<td>12ms</td>
+<td>16ms</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>结论</p>
+<p>  <strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for的性能最不稳定，foreach次之，Iterator最好</strong></p>
+</li>
+<li><p>使用建议</p>
+<ol>
+<li><p>在数据量不明确的情况下(可能1w,10w或其他)，建议使用Iterator进行遍历</p>
+</li>
+<li><p>在数据量明确且量级小的时候，优先使用foreach</p>
+</li>
+<li><p>需要使用索引时，使用递增变量的开销比for的要小</p>
+</li>
+</ol>
+</li>
+</ul>
+<h4 id="LinkedList的比较"><a href="#LinkedList的比较" class="headerlink" title="LinkedList的比较"></a>LinkedList的比较</h4><ul>
+<li><p>代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line">public class TextLinkedList &#123;</span><br><span class="line"></span><br><span class="line">    private static Random random;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list1;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list2;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list3;</span><br><span class="line"></span><br><span class="line">    public static void execute()&#123;</span><br><span class="line">        random=new Random();</span><br><span class="line">        initList();</span><br><span class="line">        testForWith10Object();</span><br><span class="line">        testForEachWith10Object();</span><br><span class="line">        testIteratorWith10Object();</span><br><span class="line">        testForWith100Object();</span><br><span class="line">        testForEachWith100Object();</span><br><span class="line">        testIteratorWith100Object();</span><br><span class="line">        testForWith1000Object();</span><br><span class="line">        testForEachWith1000Object();</span><br><span class="line">        testIteratorWith1000Object();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith10Object() &#123;</span><br><span class="line">        printFor(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith10Object() &#123;</span><br><span class="line">        printForeach(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith10Object() &#123;</span><br><span class="line">        printIterator(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith100Object() &#123;</span><br><span class="line">        printFor(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith100Object() &#123;</span><br><span class="line">        printForeach(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith100Object() &#123;</span><br><span class="line">        printIterator(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith1000Object() &#123;</span><br><span class="line">        printFor(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith1000Object() &#123;</span><br><span class="line">        printForeach(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith1000Object() &#123;</span><br><span class="line">        printIterator(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printFor(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int i=0,size=list.size();i&lt;size;i++)&#123;</span><br><span class="line">            System.out.print(list.get(i));</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;for for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printForeach(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int temp:list)&#123;</span><br><span class="line">            System.out.print(temp+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;foreach for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printIterator(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        Iterator&lt;Integer&gt; it=list.iterator();</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        while(it.hasNext())&#123;</span><br><span class="line">            System.out.print(it.next()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;iterator for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    private static void initList() &#123;</span><br><span class="line">        list1=new LinkedList&lt;&gt;();</span><br><span class="line">        list2=new LinkedList&lt;&gt;();</span><br><span class="line">        list3=new LinkedList&lt;&gt;();</span><br><span class="line">        for(int i=0;i&lt;10;i++)&#123;</span><br><span class="line">            list1.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;100;i++)&#123;</span><br><span class="line">            list2.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;1000;i++)&#123;</span><br><span class="line">            list3.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+</li>
+<li><p>输出(忽略对元素的输出)</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">for for 10:0ms</span><br><span class="line">foreach for 10:1ms</span><br><span class="line">iterator for 10:0ms</span><br><span class="line"></span><br><span class="line">for for 100:1ms</span><br><span class="line">foreach for 100:0ms</span><br><span class="line">iterator for 100:3ms</span><br><span class="line"></span><br><span class="line">for for 1000:23ms</span><br><span class="line">foreach for 1000:25ms</span><br><span class="line">iterator for 1000:4ms</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>10</th>
+<th>100</th>
+<th>1000</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>for</td>
+<td>0ms</td>
+<td>1ms</td>
+<td>23ms</td>
+</tr>
+<tr>
+<td>forEach</td>
+<td>1ms</td>
+<td>0ms</td>
+<td>25ms</td>
+</tr>
+<tr>
+<td>Iterator</td>
+<td>0ms</td>
+<td>3ms</td>
+<td>4ms</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>结论</p>
+<p>  <strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;foreach的性能最不稳定，for次之，Iterator最好</strong></p>
+</li>
+<li><p>使用建议</p>
+<ol>
+<li><p>尽量使用Iterator进行遍历</p>
+</li>
+<li><p>需要使用索引时，使用递增变量的开销比for的要小</p>
+</li>
+</ol>
+</li>
+</ul>
+<h4 id="HashSet的比较"><a href="#HashSet的比较" class="headerlink" title="HashSet的比较"></a>HashSet的比较</h4><p><em><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;注：因Hash遍历算法与其他类型不一致，所以取消了for循环的比较</strong></em></p>
+<ul>
+<li><p>代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">public class TextHash &#123;</span><br><span class="line"></span><br><span class="line">    private static Random random;</span><br><span class="line"></span><br><span class="line">    private static Set&lt;Integer&gt; set1;</span><br><span class="line"></span><br><span class="line">    private static Set&lt;Integer&gt; set2;</span><br><span class="line"></span><br><span class="line">    private static Set&lt;Integer&gt; set3;</span><br><span class="line"></span><br><span class="line">    public static void execute()&#123;</span><br><span class="line">        random=new Random();</span><br><span class="line">        initHash();</span><br><span class="line">        testIteratorWith10Object();</span><br><span class="line">        testForEachWith10Object();</span><br><span class="line">        testIteratorWith100Object();</span><br><span class="line">        testForEachWith100Object();</span><br><span class="line">        testIteratorWith1000Object();</span><br><span class="line">        testForEachWith1000Object();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith10Object() &#123;</span><br><span class="line">        printIterator(set1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith10Object() &#123;</span><br><span class="line">        printForeach(set1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith100Object() &#123;</span><br><span class="line">        printIterator(set2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith100Object() &#123;</span><br><span class="line">        printForeach(set2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith1000Object() &#123;</span><br><span class="line">        printIterator(set3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith1000Object() &#123;</span><br><span class="line">        printForeach(set3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void initHash() &#123;</span><br><span class="line">        set1=new HashSet&lt;&gt;();</span><br><span class="line">        set2=new HashSet&lt;&gt;();</span><br><span class="line">        set3=new HashSet&lt;&gt;();</span><br><span class="line">        for(int i=0;i&lt;10;i++)&#123;</span><br><span class="line">            set1.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;100;i++)&#123;</span><br><span class="line">            set2.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;1000;i++)&#123;</span><br><span class="line">            set3.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printIterator(Set&lt;Integer&gt; data)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        Iterator&lt;Integer&gt; it=data.iterator();</span><br><span class="line">        while (it.hasNext())&#123;</span><br><span class="line">            System.out.print(it.next()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;iterator for &quot;+data.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printForeach(Set&lt;Integer&gt; data)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int temp:data)&#123;</span><br><span class="line">            System.out.print(temp+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;foreach for &quot;+data.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+</li>
+<li><p>输出(忽略对元素的输出)</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">iterator for 10:0ms</span><br><span class="line">foreach for 10:0ms</span><br><span class="line"></span><br><span class="line">iterator for 100:6ms</span><br><span class="line">foreach for 100:0ms</span><br><span class="line"></span><br><span class="line">iterator for 1000:30ms</span><br><span class="line">foreach for 1000:9ms</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>10</th>
+<th>100</th>
+<th>1000</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>foreach</td>
+<td>0ms</td>
+<td>0ms</td>
+<td>9ms</td>
+</tr>
+<tr>
+<td>Iterator</td>
+<td>0ms</td>
+<td>6ms</td>
+<td>30ms</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>结论</p>
+<p>  <strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;foreach性能遥遥领先于Iterator</strong></p>
+</li>
+<li><p>使用建议</p>
+<p>  &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;以后就选foreach了，性能好，写起来也方便。</p>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ol>
+<li>for循环性能在三者的对比中总体落于下风，而且开销递增幅度较大。以后即使在需要使用索引时我宁愿使用递增变量也不会使用for了。</li>
+<li>Iterator的性能在数组以及链表的表现都是最好的，应该是JAVA的设计者优化过了。在响应时间敏感的情况下(例如web响应)，优先考虑。</li>
+<li>foreach的性能属于两者之间，写法简单，时间不敏感的情况下我会尽量选用。</li>
+</ol>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;以上就是我对常见数据结构遍历机制的一点比较，虽然只是很初步，但是从中我也学到了很多东西，希望你们也有所收获。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果你喜欢本文章，可以收藏阅读，如果你对我的其他文章感兴趣，欢迎到<a href="https://cartoonyu.github.io/cartoon-blog/">我的博客</a>查看。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2019/06/08/JAVA/JAVA%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/" title="JAVA遍历机制的性能的比较">https://cartoonyu.github.io/2019/06/08/JAVA/JAVA遍历机制的性能比较/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/05/18/Assorted/4%E7%A7%8D%E6%9E%81%E5%A4%A7%E6%8F%90%E5%8D%87%E5%AD%A6%E4%B9%A0%E6%95%88%E7%8E%87%E7%9A%84%E5%B7%A5%E5%85%B7/" rel="prev" title="4种极大提升学习效率的工具">
+      <i class="fa fa-chevron-left"></i> 4种极大提升学习效率的工具
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/06/19/JAVA/Collections/" rel="next" title="Collections工具类的概述以及用法">
+      Collections工具类的概述以及用法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%98%E7%94%B1"><span class="nav-number">1.</span> <span class="nav-text">缘由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E6%96%87"><span class="nav-number">2.</span> <span class="nav-text">正文</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ArrayList%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-number">2.1.</span> <span class="nav-text">ArrayList的比较</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LinkedList%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-number">2.2.</span> <span class="nav-text">LinkedList的比较</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HashSet%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-number">2.3.</span> <span class="nav-text">HashSet的比较</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : 'e5a759dd63a21125b0ac5f2dd1e417f5',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

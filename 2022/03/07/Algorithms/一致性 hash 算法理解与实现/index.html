@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言近段时间在了解分布式时，经常绕不开一个算法: 一致性哈希算法。于是在了解并实践这个算法后，就有了此文章。 算法间的对比 在分布式分片中，存在着几种算法:  取模，分段，一致性 hash。     取模 分段 一致性哈希    上层是否感知 是 是 否   迁移成本 高 高 低，只涉及相邻节点   单点故障影响 高 高 低，只影响相邻节点   算法复杂度 低 低 高   热点数据 存在 存在 存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一致性 hash 算法理解与实现">
+<meta property="og:url" content="https://cartoonyu.github.io/2022/03/07/Algorithms/%E4%B8%80%E8%87%B4%E6%80%A7%20hash%20%E7%AE%97%E6%B3%95%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="前言近段时间在了解分布式时，经常绕不开一个算法: 一致性哈希算法。于是在了解并实践这个算法后，就有了此文章。 算法间的对比 在分布式分片中，存在着几种算法:  取模，分段，一致性 hash。     取模 分段 一致性哈希    上层是否感知 是 是 否   迁移成本 高 高 低，只涉及相邻节点   单点故障影响 高 高 低，只影响相邻节点   算法复杂度 低 低 高   热点数据 存在 存在 存">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E5%AD%98%E5%82%A8%E6%95%B0%E6%8D%AE.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7hash%E8%8A%82%E7%82%B9%E4%B8%8A%E7%BA%BF.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7hash%E8%8A%82%E7%82%B9%E4%B8%8B%E7%BA%BF.png">
+<meta property="article:published_time" content="2022-03-07T15:39:38.000Z">
+<meta property="article:modified_time" content="2024-04-05T08:41:25.411Z">
+<meta property="article:author" content="cartoon Yu">
+<meta property="article:tag" content="Algorithms">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.png">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2022/03/07/Algorithms/%E4%B8%80%E8%87%B4%E6%80%A7%20hash%20%E7%AE%97%E6%B3%95%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>一致性 hash 算法理解与实现 | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2022/03/07/Algorithms/%E4%B8%80%E8%87%B4%E6%80%A7%20hash%20%E7%AE%97%E6%B3%95%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          一致性 hash 算法理解与实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-03-07 23:39:38" itemprop="dateCreated datePublished" datetime="2022-03-07T23:39:38+08:00">2022-03-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>近段时间在了解分布式时，经常绕不开一个算法: 一致性哈希算法。于是在了解并实践这个算法后，就有了此文章。</p>
+<h4 id="算法间的对比"><a href="#算法间的对比" class="headerlink" title="算法间的对比"></a>算法间的对比</h4><p> 在分布式分片中，存在着几种算法:  取模，分段，一致性 hash。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>取模</th>
+<th>分段</th>
+<th>一致性哈希</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>上层是否感知</td>
+<td>是</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>迁移成本</td>
+<td>高</td>
+<td>高</td>
+<td>低，只涉及相邻节点</td>
+</tr>
+<tr>
+<td>单点故障影响</td>
+<td>高</td>
+<td>高</td>
+<td>低，只影响相邻节点</td>
+</tr>
+<tr>
+<td>算法复杂度</td>
+<td>低</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>热点数据</td>
+<td>存在</td>
+<td>存在</td>
+<td>存在</td>
+</tr>
+</tbody></table>
+<h4 id="一致性哈希主要解决问题"><a href="#一致性哈希主要解决问题" class="headerlink" title="一致性哈希主要解决问题"></a>一致性哈希主要解决问题</h4><p>从上述对比可知，一致性哈希主要降低节点上下线中带来的数据迁移成本，同时节点数量的变化与分片原则于上层无感，使上层更专注于领域内逻辑的编写，使整体架构更加灵活。</p>
+<h4 id="一致性-hash-原理"><a href="#一致性-hash-原理" class="headerlink" title="一致性 hash 原理"></a>一致性 hash 原理</h4><ol>
+<li>基本数据结构</li>
+</ol>
+<p>​       基本数据类型因人而已，常规的哈希取模采用大多采用将数据 hash 到 2^32 - 1的空间中，一致性哈希通常在此基础上将空间变成一个环。如下图所示。</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.png"></p>
+<p>​      本次实现采用的是 key 按大小排列的哈希表。原打算使用数组承接数据，但排序成本随 key 的增多而加大，遂放弃。</p>
+<ol start="2">
+<li><p>数据存储</p>
+<p>数据存储与哈希取模算法大致相同，都是通过计算存入数据的哈希值放入对应的哈希槽上。但一致性哈希差异之处在于当计算 hash 不在环上，数据存入首个 hash 槽中。</p>
+<p>场景假设: 现已上线 4 节点（server1 ~ 4），对应 hash 值为 hash1 ~ 4。现有5个数据（hash1 ~ 5）于存入节点中，结果如下图所示。</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E5%AD%98%E5%82%A8%E6%95%B0%E6%8D%AE.png"></p>
+</li>
+</ol>
+<p>​       本次实现采用的思路是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 计算存入数据的 hash 值</span><br><span class="line">2. 寻找最近的（比数据 hash 值大的最小的节点 hash）节点并写入</span><br><span class="line">3. 若 2 中未能寻找服务器，则写入第一个（hash 最小）节点中</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>节点上线</li>
+</ol>
+<p>​       新节点加入一致性哈希环中，原理是通过计算节点所代表的 hash 值，并根据计算值将节点映射在环上，最后迁移相邻节点数据到新节点上。</p>
+<p>​       场景假设: 现已上线 4 台服务器（server1 ~ 4），对应 hash 值为 hash1 ~ 4。现有一个新节点（hash5）节点上线到环上。结果如下图所示。</p>
+<img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7hash%E8%8A%82%E7%82%B9%E4%B8%8A%E7%BA%BF.png" title="" alt="" data-align="inline">
+
+<p>​         本次实现采用的思路是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. 计算上线节点 hash 值</span><br><span class="line">2. 计算上线节点所新增的虚拟节点的 hash 值（若初始化指定虚拟节点数量）</span><br><span class="line">3. 寻找最近的（比上线节点与虚拟节点 hash 值大的最小的节点 hash）节点，取出节点数据</span><br><span class="line">4. 将1 2点节点加入到 hash 环中</span><br><span class="line">5. 将 3 中取出的数据重新放入到 hash 环上</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>节点下线</li>
+</ol>
+<p>​       已有节点下线，原理是通过计算节点所代表的 hash 值，取出节点所含数据，下线节点，将取出数据重新放入 hash 环上。</p>
+<p>​       场景假设: 现已上线 5 台服务器（server1 ~ 5），对应 hash 值为 hash1 ~ 5。现节点 server4 下线。结果如下图所示。</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/%E4%B8%80%E8%87%B4%E6%80%A7hash%E8%8A%82%E7%82%B9%E4%B8%8B%E7%BA%BF.png"></p>
+<p>​       本次实现采用的思路是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. 计算下线节点 hash 值</span><br><span class="line">2. 取出下线节点以及虚拟节点（若初始化指定虚拟节点数量）存储数据</span><br><span class="line">3. 将下线节点以及虚拟节点（若初始化指定虚拟节点数量）从 hash 环上移除</span><br><span class="line">4. 将 2 中数据重新放入到环上</span><br></pre></td></tr></table></figure>
+
+<h4 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h4><p>一致性哈希分为两个方案: 不带虚拟节点与带虚拟节点。而两个方案实现类似，所以本次实现将两种方案合在一起实现。实现如下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.CommonAlgorithms.ConsistentHash;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.CommonAlgorithms.HashAlgorithm.HashService;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * consistentHashing interface</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cartoon</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span>  10/01/2021</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@version</span> 1.1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">ConsistentHashing</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * put data to hash loop</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> data data list</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> put result</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">putData</span><span class="params">(List&lt;String&gt; data)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * put data to hash loop</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> data data</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> put result</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">putData</span><span class="params">(String data)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * remove node from hash loop</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> node removing node</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> remove result</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">removeNode</span><span class="params">(String node)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * add node to hash loop</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> node adding node</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> add result</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">addNode</span><span class="params">(String node)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * inject hash method to hash loop</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> hashService hash method</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> UnsupportedOperationException if loop already has node</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">setHashMethod</span><span class="params">(HashService hashService)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * print all data in loop according ascending hash value with nodes</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">printAllData</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.CommonAlgorithms.ConsistentHash;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.CommonAlgorithms.HashAlgorithm.HashService;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * consistent hash achieve</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cartoon</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span>  2021/01/17</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConsistentHashingImpl</span> <span class="keyword">implements</span> <span class="title class_">ConsistentHashing</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(ConsistentHashingImpl.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * virtual node name template</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">virtualNodeFormat</span> <span class="operator">=</span> <span class="string">&quot;%s&amp;&amp;%d&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * real node and its virtual node mapping</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> SortedMap&lt;String, List&lt;String&gt;&gt; realNodeToVirtualNode;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * hash and its node mapping</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> SortedMap&lt;Integer, String&gt; hashToNodes;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * node and its data mapping</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> Map&lt;String, List&lt;String&gt;&gt; nodeToData;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * determine virtual node&#x27;s number of each node</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> virtualNodeNum;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * inject hash method, if null, use loop default hash method</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> HashService hashService;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ConsistentHashingImpl</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>(<span class="number">0</span>, <span class="keyword">new</span> <span class="title class_">String</span>[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ConsistentHashingImpl</span><span class="params">(String... nodes)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>(<span class="number">0</span>, nodes);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ConsistentHashingImpl</span><span class="params">(<span class="type">int</span> virtualNodeNum)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>(virtualNodeNum, <span class="keyword">new</span> <span class="title class_">String</span>[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ConsistentHashingImpl</span><span class="params">(<span class="type">int</span> virtualNodeNum, String... nodes)</span> &#123;</span><br><span class="line">        <span class="comment">//1. intercept virtual num smaller than 0</span></span><br><span class="line">        <span class="keyword">if</span>(virtualNodeNum &lt; <span class="number">0</span>)&#123;</span><br><span class="line">            log.error(<span class="string">&quot;virtual num is not allow smaller than 0&quot;</span>);</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//2. initialize loop member attributes</span></span><br><span class="line">        <span class="built_in">this</span>.virtualNodeNum = virtualNodeNum;</span><br><span class="line">        realNodeToVirtualNode = <span class="keyword">new</span> <span class="title class_">TreeMap</span>&lt;&gt;();</span><br><span class="line">        hashToNodes = <span class="keyword">new</span> <span class="title class_">TreeMap</span>&lt;&gt;();</span><br><span class="line">        nodeToData = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span>(String server : nodes)&#123;</span><br><span class="line">            hashToNodes.put(getHash(server), server);</span><br><span class="line">            nodeToData.put(server, <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//3. if virtual node number bigger than 0, add virtual node</span></span><br><span class="line">        <span class="keyword">if</span>(virtualNodeNum &gt; <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">for</span>(String server : nodes)&#123;</span><br><span class="line">                addVirtualNode(server);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">putData</span><span class="params">(List&lt;String&gt; data)</span> &#123;</span><br><span class="line">        <span class="comment">//1. circulate call put data method to add data to loop</span></span><br><span class="line">        <span class="keyword">for</span>(String incomingData : data)&#123;</span><br><span class="line">            <span class="keyword">if</span>(!putData(incomingData))&#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">putData</span><span class="params">(String data)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(hashToNodes.isEmpty())&#123;</span><br><span class="line">            log.error(<span class="string">&quot;put data, usable server is empty&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//1. calculate data&#x27;s hash value</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">currentHash</span> <span class="operator">=</span> getHash(data);</span><br><span class="line">        <span class="comment">//2. get usual node(node&#x27;s hash value is bigger than data&#x27;s hash value), if usual node list is empty, get first node in loop</span></span><br><span class="line">        SortedMap&lt;Integer, String&gt; usableNodes = hashToNodes.tailMap(currentHash);</span><br><span class="line">        <span class="type">String</span> <span class="variable">node</span> <span class="operator">=</span> usableNodes.isEmpty() ? hashToNodes.get(hashToNodes.firstKey()) : usableNodes.get(usableNodes.firstKey());</span><br><span class="line">        <span class="comment">//3. add data to node</span></span><br><span class="line">        List&lt;String&gt; dataList = nodeToData.get(node);</span><br><span class="line">        dataList.add(data);</span><br><span class="line">        log.info(<span class="string">&quot;put data, data &#123;&#125; is placed to server &#123;&#125;, hash: &#123;&#125;&quot;</span>, data, node, currentHash);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">removeNode</span><span class="params">(String node)</span> &#123;</span><br><span class="line">        <span class="comment">//1. calculate hash value of removing node</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">removeServerHash</span> <span class="operator">=</span> getHash(node);</span><br><span class="line">        <span class="keyword">if</span>(!hashToNodes.containsKey(removeServerHash))&#123;</span><br><span class="line">            log.error(<span class="string">&quot;remove server, current server is not in server list, please check server ip&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//2. get data from removing node</span></span><br><span class="line">        List&lt;String&gt; removeServerData = nodeToData.get(node);</span><br><span class="line">        <span class="comment">//3. get removing node&#x27;s virtual node data, remove all virtual node with removing node</span></span><br><span class="line">        <span class="keyword">if</span>(virtualNodeNum != <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">for</span>(String virtualNode : realNodeToVirtualNode.get(node))&#123;</span><br><span class="line">                removeServerData.addAll(nodeToData.get(virtualNode));</span><br><span class="line">                hashToNodes.remove(getHash(virtualNode));</span><br><span class="line">                nodeToData.remove(virtualNode);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//4. remove node from hash loop</span></span><br><span class="line">        hashToNodes.remove(removeServerHash);</span><br><span class="line">        nodeToData.remove(node);</span><br><span class="line">        <span class="keyword">if</span>(hashToNodes.size() == <span class="number">0</span>)&#123;</span><br><span class="line">            log.info(<span class="string">&quot;remove server, after remove, server list is empty&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//5. put data to loop by call put data method</span></span><br><span class="line">        putData(removeServerData);</span><br><span class="line">        log.info(<span class="string">&quot;remove server, remove server &#123;&#125; success&quot;</span>, node);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">addNode</span><span class="params">(String node)</span> &#123;</span><br><span class="line">        <span class="comment">//1, calculate adding node&#x27;s hash value</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">addServerHash</span> <span class="operator">=</span> getHash(node);</span><br><span class="line">        <span class="comment">//2. add node and migrate data</span></span><br><span class="line">        <span class="keyword">if</span>(hashToNodes.isEmpty())&#123;</span><br><span class="line">            <span class="comment">//2.1 add node and its virtual node to loop directly when current loop is empty</span></span><br><span class="line">            hashToNodes.put(addServerHash, node);</span><br><span class="line">            nodeToData.put(node, <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;());</span><br><span class="line">            <span class="keyword">if</span>(virtualNodeNum &gt; <span class="number">0</span>)&#123;</span><br><span class="line">                addVirtualNode(node);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="comment">//2.2.1 get data to be migrated from loop</span></span><br><span class="line">            SortedMap&lt;Integer, String&gt; greatServers = hashToNodes.tailMap(addServerHash);</span><br><span class="line">            <span class="type">String</span> <span class="variable">greatServer</span> <span class="operator">=</span> greatServers.isEmpty() ? hashToNodes.get(hashToNodes.firstKey()) : greatServers.get(greatServers.firstKey());</span><br><span class="line">            List&lt;String&gt; firstGreatServerData = <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;(nodeToData.get(greatServer));</span><br><span class="line">            <span class="comment">//2.2.2 add node and its virtual node to loop</span></span><br><span class="line">            hashToNodes.put(addServerHash, node);</span><br><span class="line">            nodeToData.put(greatServer, <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;());</span><br><span class="line">            nodeToData.put(node, <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;());</span><br><span class="line">            <span class="keyword">if</span>(virtualNodeNum != <span class="number">0</span>)&#123;</span><br><span class="line">                addVirtualNode(node);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//2.2.3 migrate 2.2.1 data to loop by call put data method</span></span><br><span class="line">            putData(firstGreatServerData);</span><br><span class="line">        &#125;</span><br><span class="line">        log.info(<span class="string">&quot;add server, server &#123;&#125; has been added&quot;</span>, node);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">printAllData</span><span class="params">()</span> &#123;</span><br><span class="line">        nodeToData.forEach((server, data) -&gt; log.info(<span class="string">&quot;server &#123;&#125; contains data &#123;&#125;&quot;</span>, server, data));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setHashMethod</span><span class="params">(HashService hashService)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(!hashToNodes.isEmpty())&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UnsupportedOperationException</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">this</span>.hashService = hashService;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">addVirtualNode</span><span class="params">(String realNode)</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(virtualNodeNum &gt; <span class="number">0</span>)&#123;</span><br><span class="line">            List&lt;String&gt; virtualNodeList = <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;();</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">cnt</span> <span class="operator">=</span> <span class="number">0</span>; cnt &lt; <span class="built_in">this</span>.virtualNodeNum; cnt++)&#123;</span><br><span class="line">                <span class="comment">//1. generate virtual node name by default format</span></span><br><span class="line">                <span class="type">String</span> <span class="variable">virtualNodeName</span> <span class="operator">=</span> String.format(virtualNodeFormat, realNode, cnt);</span><br><span class="line">                <span class="comment">//2. calculate each virtual node&#x27;s hash value</span></span><br><span class="line">                <span class="type">int</span> <span class="variable">virtualNodeHash</span> <span class="operator">=</span> getHash(virtualNodeName);</span><br><span class="line">                <span class="comment">//3. current node already exist in loop, continue</span></span><br><span class="line">                <span class="keyword">if</span>(hashToNodes.containsKey(virtualNodeHash))&#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//4. add node to loop</span></span><br><span class="line">                virtualNodeList.add(virtualNodeName);</span><br><span class="line">                hashToNodes.put(virtualNodeHash, virtualNodeName);</span><br><span class="line">                nodeToData.put(virtualNodeName, <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//5. map virtual node to real node</span></span><br><span class="line">            realNodeToVirtualNode.put(realNode, virtualNodeList);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">getHash</span><span class="params">(String data)</span>&#123;</span><br><span class="line">        <span class="type">return</span> <span class="variable">hashService</span> <span class="operator">=</span>= <span class="literal">null</span> ? defaultGetHash(data) : hashService.getHash(data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">defaultGetHash</span><span class="params">(String data)</span>&#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">res</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">char</span> tempChar : data.toCharArray())&#123;</span><br><span class="line">            <span class="keyword">if</span>(tempChar &gt;= <span class="string">&#x27;0&#x27;</span> &amp;&amp; tempChar &lt;= <span class="string">&#x27;9&#x27;</span>)&#123;</span><br><span class="line">                res += tempChar;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h4><h5 id="不带虚拟节点的一致性哈希"><a href="#不带虚拟节点的一致性哈希" class="headerlink" title="不带虚拟节点的一致性哈希"></a>不带虚拟节点的一致性哈希</h5><h5 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> ConsistentHash;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.CommonAlgorithms.ConsistentHash.ConsistentHashing;</span><br><span class="line"><span class="keyword">import</span> org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl;</span><br><span class="line"><span class="keyword">import</span> org.junit.Assert;</span><br><span class="line"><span class="keyword">import</span> org.junit.Before;</span><br><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cartoon</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020/12/27</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConsistentHashingWithoutVirtualNodeTest</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(ConsistentHashingWithoutVirtualNodeTest.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ConsistentHashing consistentHashing;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String[] servers;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String[] data;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Before</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">before</span><span class="params">()</span>&#123;</span><br><span class="line">        servers = <span class="keyword">new</span> <span class="title class_">String</span>[]&#123;<span class="string">&quot;000&quot;</span>, <span class="string">&quot;111&quot;</span>, <span class="string">&quot;222&quot;</span>, <span class="string">&quot;333&quot;</span>, <span class="string">&quot;555&quot;</span>&#125;;</span><br><span class="line">        consistentHashing = <span class="keyword">new</span> <span class="title class_">ConsistentHashingImpl</span>(servers);</span><br><span class="line">        data = <span class="keyword">new</span> <span class="title class_">String</span>[]&#123;<span class="string">&quot;000&quot;</span>, <span class="string">&quot;111&quot;</span>, <span class="string">&quot;222&quot;</span>, <span class="string">&quot;333&quot;</span>, <span class="string">&quot;555&quot;</span>&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testConsistentHashing</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(String str : data)&#123;</span><br><span class="line">            Assert.assertTrue(consistentHashing.putData(str));</span><br><span class="line">        &#125;</span><br><span class="line">        consistentHashing.removeNode(<span class="string">&quot;333&quot;</span>);</span><br><span class="line">        consistentHashing.addNode(<span class="string">&quot;444&quot;</span>);</span><br><span class="line">        consistentHashing.putData(<span class="string">&quot;444&quot;</span>);</span><br><span class="line">        consistentHashing.printAllData();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="测试结果-1"><a href="#测试结果-1" class="headerlink" title="测试结果"></a>测试结果</h5><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 000 is placed to server 000, hash: 144</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 111 is placed to server 111, hash: 147</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 222 is placed to server 222, hash: 150</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 333 is placed to server 333, hash: 153</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 555 is placed to server 555, hash: 159</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 333 is placed to server 555, hash: 153</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - remove server, remove server 333 success</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 555 is placed to server 555, hash: 159</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 333 is placed to server 444, hash: 153</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - add server, server 444 has been added</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 444 is placed to server 444, hash: 156</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 000 contains data [000]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 111 contains data [111]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 222 contains data [222]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 444 contains data [333, 444]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 555 contains data [555]</span><br></pre></td></tr></table></figure>
+
+<h5 id="含虚拟节点的一致性哈希测试"><a href="#含虚拟节点的一致性哈希测试" class="headerlink" title="含虚拟节点的一致性哈希测试"></a>含虚拟节点的一致性哈希测试</h5><h5 id="测试代码-1"><a href="#测试代码-1" class="headerlink" title="测试代码"></a>测试代码</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> ConsistentHash;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.CommonAlgorithms.ConsistentHash.ConsistentHashing;</span><br><span class="line"><span class="keyword">import</span> org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl;</span><br><span class="line"><span class="keyword">import</span> org.junit.Assert;</span><br><span class="line"><span class="keyword">import</span> org.junit.Before;</span><br><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cartoon</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2021/01/17</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConsistentHashingWithVirtualNodeTest</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(ConsistentHashingWithVirtualNodeTest.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ConsistentHashing consistentHashing;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String[] servers;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String[] data;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Before</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">before</span><span class="params">()</span>&#123;</span><br><span class="line">        servers = <span class="keyword">new</span> <span class="title class_">String</span>[]&#123;<span class="string">&quot;000&quot;</span>, <span class="string">&quot;111&quot;</span>, <span class="string">&quot;222&quot;</span>, <span class="string">&quot;333&quot;</span>, <span class="string">&quot;555&quot;</span>&#125;;</span><br><span class="line">        consistentHashing = <span class="keyword">new</span> <span class="title class_">ConsistentHashingImpl</span>(<span class="number">3</span>, servers);</span><br><span class="line">        data = <span class="keyword">new</span> <span class="title class_">String</span>[]&#123;<span class="string">&quot;000&quot;</span>, <span class="string">&quot;111&quot;</span>, <span class="string">&quot;222&quot;</span>, <span class="string">&quot;333&quot;</span>, <span class="string">&quot;555&quot;</span>&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testConsistentHashing</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(String str : data)&#123;</span><br><span class="line">            Assert.assertTrue(consistentHashing.putData(str));</span><br><span class="line">        &#125;</span><br><span class="line">        consistentHashing.removeNode(<span class="string">&quot;333&quot;</span>);</span><br><span class="line">        consistentHashing.addNode(<span class="string">&quot;444&quot;</span>);</span><br><span class="line">        consistentHashing.putData(<span class="string">&quot;444&quot;</span>);</span><br><span class="line">        consistentHashing.putData(<span class="string">&quot;555&amp;&amp;0&quot;</span>);</span><br><span class="line">        consistentHashing.printAllData();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="测试结果-2"><a href="#测试结果-2" class="headerlink" title="测试结果"></a>测试结果</h5><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 000 is placed to server 000, hash: 144</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 111 is placed to server 111, hash: 147</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 222 is placed to server 222, hash: 150</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 333 is placed to server 333, hash: 153</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 555 is placed to server 555, hash: 159</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 333 is placed to server 555, hash: 153</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - remove server, remove server 333 success</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 555 is placed to server 555, hash: 159</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 333 is placed to server 444, hash: 153</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - add server, server 444 has been added</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 444 is placed to server 444, hash: 156</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - put data, data 555&amp;&amp;0 is placed to server 555&amp;&amp;0, hash: 207</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 000&amp;&amp;2 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 000&amp;&amp;1 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 000&amp;&amp;0 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 111&amp;&amp;1 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 111&amp;&amp;2 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 555&amp;&amp;1 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 555&amp;&amp;2 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 222&amp;&amp;2 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 444&amp;&amp;0 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 444&amp;&amp;1 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 444&amp;&amp;2 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 555&amp;&amp;0 contains data [555&amp;&amp;0]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 000 contains data [000]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 111 contains data [111]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 222 contains data [222]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 222&amp;&amp;0 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 444 contains data [333, 444]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 555 contains data [555]</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 222&amp;&amp;1 contains data []</span><br><span class="line">[main] INFO org.CommonAlgorithms.ConsistentHash.ConsistentHashingImpl - server 111&amp;&amp;0 contains data []</span><br></pre></td></tr></table></figure>
+
+<h4 id="实现存在的缺陷"><a href="#实现存在的缺陷" class="headerlink" title="实现存在的缺陷"></a>实现存在的缺陷</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 哈希算法过于简单，哈希冲突概率较大</span><br><span class="line">2. 真实节点含有虚拟节点的数量不均</span><br><span class="line">3. 节点上线时真实节点与已存在的虚拟节点的顺序冲突尚未解决</span><br></pre></td></tr></table></figure>
+
+<h4 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h4><p>本次实现的所有代码已全部上传到 <a target="_blank" rel="noopener" href="https://github.com/cartoonYu/CommonAlgorithms%EF%BC%8C%E9%A1%B9%E7%9B%AE%E4%B8%BB%E8%A6%81%E5%8C%85%E5%90%AB%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E7%9A%84%E7%AE%97%E6%B3%95%EF%BC%8C%E5%A6%82%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%EF%BC%8C%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0%EF%BC%8C%E6%AC%A2%E8%BF%8E%E6%8F%90">https://github.com/cartoonYu/CommonAlgorithms，项目主要包含一些常用的算法，如排序算法，限流算法的简单实现，欢迎提</a> issue。</p>
+<p>本文首发于<a href="https://cartoonyu.github.io/">cartoon的博客</a></p>
+<p>转载请注明出处:<a href="https://cartoonyu.github.io/">https://cartoonyu.github.io</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2022/03/07/Algorithms/%E4%B8%80%E8%87%B4%E6%80%A7%20hash%20%E7%AE%97%E6%B3%95%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="一致性 hash 算法理解与实现">https://cartoonyu.github.io/2022/03/07/Algorithms/一致性 hash 算法理解与实现/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Algorithms/" rel="tag"># Algorithms</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/07/spring/Spring%20%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/" rel="prev" title="Spring 获取配置的三种方式">
+      <i class="fa fa-chevron-left"></i> Spring 获取配置的三种方式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/18/Ubuntu/Linux%E6%96%B0%E5%A2%9Eswap%E5%88%86%E5%8C%BA/" rel="next" title="Linux新增swap分区">
+      Linux新增swap分区 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E9%97%B4%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-number">2.</span> <span class="nav-text">算法间的对比</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E4%B8%BB%E8%A6%81%E8%A7%A3%E5%86%B3%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">一致性哈希主要解决问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7-hash-%E5%8E%9F%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">一致性 hash 原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">5.</span> <span class="nav-text">代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">6.</span> <span class="nav-text">测试结果</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%8D%E5%B8%A6%E8%99%9A%E6%8B%9F%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C"><span class="nav-number">6.1.</span> <span class="nav-text">不带虚拟节点的一致性哈希</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81"><span class="nav-number">6.2.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C-1"><span class="nav-number">6.3.</span> <span class="nav-text">测试结果</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%90%AB%E8%99%9A%E6%8B%9F%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E6%B5%8B%E8%AF%95"><span class="nav-number">6.4.</span> <span class="nav-text">含虚拟节点的一致性哈希测试</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81-1"><span class="nav-number">6.5.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C-2"><span class="nav-number">6.6.</span> <span class="nav-text">测试结果</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%AD%98%E5%9C%A8%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="nav-number">7.</span> <span class="nav-text">实现存在的缺陷</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">8.</span> <span class="nav-text">后记</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : '120941fe26d4c678de7546c25b146e73',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

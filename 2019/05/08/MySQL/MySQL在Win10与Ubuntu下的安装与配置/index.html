@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于cartoon的博客&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:https:&#x2F;&#x2F;cartoonyu.github.io&#x2F;cartoon-blog &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;近段时间把自己电脑（win）、虚">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL在Win10与Ubuntu下的安装与配置">
+<meta property="og:url" content="https://cartoonyu.github.io/2019/05/08/MySQL/MySQL%E5%9C%A8Win10%E4%B8%8EUbuntu%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于cartoon的博客&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:https:&#x2F;&#x2F;cartoonyu.github.io&#x2F;cartoon-blog &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;近段时间把自己电脑（win）、虚">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/3435461725-5cceb2c6a163e_articlex.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1502813352-5cceb2c6a79cd_articlex.png">
+<meta property="article:published_time" content="2019-05-08T05:20:38.000Z">
+<meta property="article:modified_time" content="2024-04-05T08:41:25.413Z">
+<meta property="article:author" content="cartoon Yu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/3435461725-5cceb2c6a163e_articlex.png">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2019/05/08/MySQL/MySQL%E5%9C%A8Win10%E4%B8%8EUbuntu%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>MySQL在Win10与Ubuntu下的安装与配置 | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/MySQL/MySQL%E5%9C%A8Win10%E4%B8%8EUbuntu%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL在Win10与Ubuntu下的安装与配置
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-05-08 13:20:38" itemprop="dateCreated datePublished" datetime="2019-05-08T13:20:38+08:00">2019-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;近段时间把自己电脑（win）、虚拟机（Ubuntu）以及阿里云（ubuntu）都重置了一遍，其中本机以及阿里云都有用到MySQL,不想之后找教程找的那么麻烦。所以就自己总结一遍，一次性把轮子造好。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;环境</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Win10 1803 Home</span><br><span class="line">Ubuntu 16.04.3</span><br></pre></td></tr></table></figure>
+
+<h2 id="Windows环境下安装"><a href="#Windows环境下安装" class="headerlink" title="Windows环境下安装"></a>Windows环境下安装</h2><ol>
+<li>下载MySQL压缩包<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://dev.mysql.com/downloads/mysql/</span><br></pre></td></tr></table></figure></li>
+<li>解压到本地目录，并添加一个配置文件，命名为my.ini，内容如下：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[mysqld] </span><br><span class="line"># 设置为自己MYSQL的安装目录 </span><br><span class="line"># 注意是双斜杆，我就入过坑</span><br><span class="line">basedir=D:\\MySQL</span><br><span class="line"># 设置为MYSQL的数据目录 </span><br><span class="line"># 文件夹需手动创建</span><br><span class="line">datadir=D:\\MySQL\\data</span><br><span class="line">default-storage-engine=INNODB</span><br><span class="line">character-set-server=utf8</span><br><span class="line">[mysql]</span><br><span class="line"># 设置mysql客户端默认字符集</span><br><span class="line">default-character-set=utf8</span><br><span class="line">[client]</span><br><span class="line"># 设置mysql客户端连接服务端时默认使用的端口</span><br><span class="line">port=3306</span><br><span class="line">default-character-set=utf8</span><br></pre></td></tr></table></figure></li>
+<li>以管理员权限进入MySQL的bin目录<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">d: //MySQL的安装目录盘符</span><br><span class="line">cd MySQL/bin</span><br></pre></td></tr></table></figure></li>
+<li>安装MySQL服务<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysqld --install</span><br><span class="line">//出现Service successfully installed即安装成功</span><br></pre></td></tr></table></figure></li>
+<li>初始化日志文件<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --initialize --console</span><br></pre></td></tr></table></figure>
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>记住mysql反馈语句中最后一条：a temporary password is….为第八步出现的问题作铺垫。</strong></li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/3435461725-5cceb2c6a163e_articlex.png"></p>
+<ol start="6">
+<li>配置环境变量<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">;D:\MySQL\bin;</span><br><span class="line">//分号分隔前属性，bin目录的路径换成自己电脑的路径</span><br></pre></td></tr></table></figure></li>
+<li>启动服务<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net start mysql</span><br></pre></td></tr></table></figure></li>
+<li>登录服务器<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -uroot -p</span><br></pre></td></tr></table></figure>
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;输入密码提示Access denied for user ‘root‘@’localhost’ (using password: YES）<br/><br>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;解决方法及后续步骤：<a href="%5Bhttps://www.jianshu.com/p/b9aa71438fd7%5D(https://www.jianshu.com/p/b9aa71438fd7)">解决MySQL 8.0登录Access denied for user ‘root‘@’localhost’ (using password: YES)</a></li>
+</ol>
+<h2 id="Ubuntu环境下安装"><a href="#Ubuntu环境下安装" class="headerlink" title="Ubuntu环境下安装"></a>Ubuntu环境下安装</h2><ol>
+<li><p>打开终端</p>
+</li>
+<li><p>输入命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install mysql-server</span><br><span class="line">sudo apt-get isntall mysql-client</span><br><span class="line">sudo apt-get install libmysqlclient-dev</span><br></pre></td></tr></table></figure>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在安装过程中会让你输入密码以及确认密码，不要忘掉，那是mysql的root用户密码</p>
+</li>
+<li><p>检查是否安装成功</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo netstat -tap | grep mysql</span><br></pre></td></tr></table></figure>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;若出现截图内的语句即说明安装成功<br><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1502813352-5cceb2c6a79cd_articlex.png"></p>
+</li>
+</ol>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;存在的一点点问题</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;原本我是想在ubuntu下像在win一样通过配置文件进行安装的，但是试了很久都不行最后再次重置了服务器。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果你们有什么方法是可以的可以在评论告诉我。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2019/05/08/MySQL/MySQL%E5%9C%A8Win10%E4%B8%8EUbuntu%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/" title="MySQL在Win10与Ubuntu下的安装与配置">https://cartoonyu.github.io/2019/05/08/MySQL/MySQL在Win10与Ubuntu下的安装与配置/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/05/08/Ubuntu/Ubuntu%E7%BB%88%E7%AB%AF%E5%86%85%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86%E5%99%A8/" rel="prev" title="Ubuntu终端内打开文件管理器">
+      <i class="fa fa-chevron-left"></i> Ubuntu终端内打开文件管理器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/05/08/Ubuntu/Ubuntu%E4%B8%8B%E5%AE%89%E8%A3%85vim%E4%BB%A5%E5%8F%8A%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" rel="next" title="Ubuntu下安装vim以及常用命令">
+      Ubuntu下安装vim以及常用命令 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Windows%E7%8E%AF%E5%A2%83%E4%B8%8B%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">Windows环境下安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ubuntu%E7%8E%AF%E5%A2%83%E4%B8%8B%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Ubuntu环境下安装</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : 'aafbdcb4aa7fcceef11a51e2919f82e2',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言最近在写框架时遇到需要根据特定配置（可能不存在）加载 bean 的需求，所以就学习了下 Spring 中如何获取配置的几种方式。 Spring 中获取配置的三种方式  通过 @Value 方式动态获取单个配置 通过 @ConfigurationProperties + 前缀方式批量获取配置 通过 Environment 动态获取单个配置   通过 @Value 动态获取单个配置 作用  可修饰">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring 获取配置的三种方式">
+<meta property="og:url" content="https://cartoonyu.github.io/2022/03/07/spring/Spring%20%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="前言最近在写框架时遇到需要根据特定配置（可能不存在）加载 bean 的需求，所以就学习了下 Spring 中如何获取配置的几种方式。 Spring 中获取配置的三种方式  通过 @Value 方式动态获取单个配置 通过 @ConfigurationProperties + 前缀方式批量获取配置 通过 Environment 动态获取单个配置   通过 @Value 动态获取单个配置 作用  可修饰">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-03-07T15:39:38.000Z">
+<meta property="article:modified_time" content="2024-04-05T08:41:25.415Z">
+<meta property="article:author" content="cartoon Yu">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2022/03/07/spring/Spring%20%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>Spring 获取配置的三种方式 | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2022/03/07/spring/Spring%20%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring 获取配置的三种方式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-03-07 23:39:38" itemprop="dateCreated datePublished" datetime="2022-03-07T23:39:38+08:00">2022-03-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>最近在写框架时遇到需要根据特定配置（可能不存在）加载 bean 的需求，所以就学习了下 Spring 中如何获取配置的几种方式。</p>
+<h4 id="Spring-中获取配置的三种方式"><a href="#Spring-中获取配置的三种方式" class="headerlink" title="Spring 中获取配置的三种方式"></a>Spring 中获取配置的三种方式</h4><blockquote>
+<ol>
+<li>通过 @Value 方式动态获取单个配置</li>
+<li>通过 @ConfigurationProperties + 前缀方式批量获取配置</li>
+<li>通过 Environment 动态获取单个配置</li>
+</ol>
+</blockquote>
+<h3 id="通过-Value-动态获取单个配置"><a href="#通过-Value-动态获取单个配置" class="headerlink" title="通过 @Value 动态获取单个配置"></a>通过 @Value 动态获取单个配置</h3><ol>
+<li><p>作用</p>
+<ol>
+<li>可修饰到任一变量获取，使用较灵活</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li>使用简单，且使用关联的链路较短</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li><p>配置名不能被有效枚举到</p>
+</li>
+<li><p>每一个配置的使用都需重新定义，使用较为麻烦</p>
+</li>
+<li><p>项目强依赖配置的定义，配置不存在则会导致项目无法启动</p>
+</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li><p>项目强依赖该配置的加载，想要从源头避免因配置缺失导致的未知问题</p>
+</li>
+<li><p>只想使用少数几个配置</p>
+</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConfigByValueAnnotation</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;server.port&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String serverPort;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getServerPort</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> serverPort;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>测试代码</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@DisplayName(&quot;multipart get config&quot;)</span></span><br><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MultipartGetConfigTest</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(MultipartGetConfigTest.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> ConfigByValueAnnotation configByValueAnnotation;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">getByValueAnnotation</span><span class="params">()</span>&#123;</span><br><span class="line">        log.info(<span class="string">&quot;get by @Value, value: &#123;&#125;&quot;</span>, configByValueAnnotation.getServerPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>测试结果</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.spring.demo.MultipartGetConfigTest   : get by @Value, value: 7100</span><br></pre></td></tr></table></figure>
+
+<h4 id="通过-ConfigurationProperties-前缀方式批量获取"><a href="#通过-ConfigurationProperties-前缀方式批量获取" class="headerlink" title="通过 @ConfigurationProperties + 前缀方式批量获取"></a>通过 @ConfigurationProperties + 前缀方式批量获取</h4><ol>
+<li><p>作用</p>
+<ol>
+<li>用于配置类的修饰或批量配置的获取</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li><p>使用配置只需确定 key 的前缀即能使用，有利于批量获取场景的使用</p>
+</li>
+<li><p>因采用前缀匹配，所以在使用新的相同前缀 key 的配置时无需改动代码</p>
+</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li><p>使用复杂，需定义配置类或者手动创建 bean 后引入使用</p>
+</li>
+<li><p>增加新的前缀相同 key 时可能会引入不稳定因素</p>
+</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li><p>需要同时使用多前缀相同 key 的配置</p>
+</li>
+<li><p>期望增加新配置但不修改代码的 properties 注入</p>
+</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">@ConfigurationProperties(prefix = &quot;server&quot;, ignoreInvalidFields = true)</span><br><span class="line">public class ConfigByConfigurationProperties &#123;</span><br><span class="line"></span><br><span class="line">    private Integer port;</span><br><span class="line"></span><br><span class="line">    public Integer getPort() &#123;</span><br><span class="line">        return port;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public ConfigByConfigurationProperties setPort(Integer port) &#123;</span><br><span class="line">        this.port = port;</span><br><span class="line">        return this;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class ConfigByConfigurationPropertiesV2 &#123;</span><br><span class="line"></span><br><span class="line">    @Bean(&quot;configByValueAnnotationV2&quot;)</span><br><span class="line">    @ConfigurationProperties(prefix = &quot;server2&quot;)</span><br><span class="line">    public Properties properties()&#123;</span><br><span class="line">        return new Properties();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>测试代码</li>
+</ol>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">@DisplayName(&quot;multipart get config&quot;)</span><br><span class="line">@SpringBootTest</span><br><span class="line">public class MultipartGetConfigTest &#123;</span><br><span class="line"></span><br><span class="line">       private static final Logger log = LoggerFactory.getLogger(MultipartGetConfigTest.class);</span><br><span class="line">    </span><br><span class="line">       @Autowired</span><br><span class="line">       private ConfigByConfigurationProperties configByConfigurationProperties;</span><br><span class="line">    </span><br><span class="line">       @Autowired</span><br><span class="line">       @Qualifier(&quot;configByValueAnnotationV2&quot;)</span><br><span class="line">       private Properties properties;</span><br><span class="line">    </span><br><span class="line">       @Test</span><br><span class="line">       public void getByConfigurationProperties()&#123;</span><br><span class="line">           log.info(&quot;get by @ConfigurationProperties, value: &#123;&#125;&quot;, configByConfigurationProperties.getPort());</span><br><span class="line">           log.info(&quot;get by @ConfigurationProperties and manual create bean, value: &#123;&#125;&quot;, properties.getProperty(&quot;port&quot;));</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>测试结果</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">org.spring.demo.MultipartGetConfigTest   : get by @ConfigurationProperties, value: 7100</span><br><span class="line">org.spring.demo.MultipartGetConfigTest   : get by @ConfigurationProperties and manual create bean, value: 7100</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="通过-Environment-动态获取单个配置"><a href="#通过-Environment-动态获取单个配置" class="headerlink" title="通过 Environment 动态获取单个配置"></a>通过 Environment 动态获取单个配置</h4><ol>
+<li><p>作用</p>
+<ol>
+<li>用于动态在程序代码中获取配置，而配置 key 不需提前定义</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li><p>获取的配置的 key 可不提前定义，程序灵活性高</p>
+</li>
+<li><p>配置 key 可使用枚举统一放置与管理</p>
+</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li><p>使用较复杂，需继承 Environment 接口形成工具类进行获取</p>
+</li>
+<li><p>获取 key 对应的枚举与 key 定义分离，value 获取链路较长</p>
+</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li><p>只需使用少量的配置</p>
+</li>
+<li><p>获取配置的 key 无提前定义，需要根据对配置的有无进行灵活使用</p>
+</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+</li>
+</ol>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConfigByEnvironment</span> <span class="keyword">implements</span> <span class="title class_">EnvironmentAware</span> &#123;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(ConfigByEnvironment.class);</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">private</span> Environment environment;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">public</span> Optional&lt;String&gt; <span class="title function_">get</span><span class="params">(String configKey)</span>&#123;</span><br><span class="line">           <span class="type">String</span> <span class="variable">config</span> <span class="operator">=</span> environment.getProperty(configKey);</span><br><span class="line">           <span class="keyword">return</span> Objects.isNull(config) ? Optional.empty() : Optional.of(config);</span><br><span class="line">       &#125;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">get</span><span class="params">(String configKey, Consumer&lt;String&gt; consumer)</span>&#123;</span><br><span class="line">           Optional&lt;String&gt; config = get(configKey);</span><br><span class="line">           <span class="keyword">if</span>(!config.isPresent())&#123;</span><br><span class="line">               log.warn(<span class="string">&quot;application config, get config by key fail, key: &#123;&#125;&quot;</span>, configKey);</span><br><span class="line">           &#125;</span><br><span class="line">           config.ifPresent(consumer);</span><br><span class="line">       &#125;</span><br><span class="line">    </span><br><span class="line">       <span class="meta">@Override</span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setEnvironment</span><span class="params">(<span class="meta">@NonNull</span> Environment environment)</span> &#123;</span><br><span class="line">           <span class="built_in">this</span>.environment = environment;</span><br><span class="line">       &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">ConfigByEnvironmentKey</span> &#123;</span><br><span class="line"></span><br><span class="line">       SERVER_PORT(<span class="string">&quot;server.port&quot;</span>, <span class="string">&quot;server port&quot;</span>);</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">private</span> String key;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">private</span> String description;</span><br><span class="line">    </span><br><span class="line">       ConfigByEnvironmentKey(String key, String description) &#123;</span><br><span class="line">           <span class="built_in">this</span>.key = key;</span><br><span class="line">           <span class="built_in">this</span>.description = description;</span><br><span class="line">       &#125;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">public</span> String <span class="title function_">getKey</span><span class="params">()</span> &#123;</span><br><span class="line">           <span class="keyword">return</span> key;</span><br><span class="line">       &#125;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">public</span> String <span class="title function_">getDescription</span><span class="params">()</span> &#123;</span><br><span class="line">           <span class="keyword">return</span> description;</span><br><span class="line">       &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="6">
+<li>测试代码</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@DisplayName(&quot;multipart get config&quot;)</span><br><span class="line">   @SpringBootTest</span><br><span class="line">   public class MultipartGetConfigTest &#123;</span><br><span class="line"></span><br><span class="line">       private static final Logger log = LoggerFactory.getLogger(MultipartGetConfigTest.class);</span><br><span class="line">    </span><br><span class="line">       @Autowired</span><br><span class="line">       private ConfigByEnvironment configByEnvironment;</span><br><span class="line">    </span><br><span class="line">       @Test</span><br><span class="line">       public void getByEnvironment()&#123;</span><br><span class="line">           configByEnvironment.get(ConfigByEnvironmentKey.SERVER_PORT.getKey()).ifPresent(value -&gt; log.info(&quot;get by environment, value: &#123;&#125;&quot;, value));</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>测试结果</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.spring.demo.MultipartGetConfigTest   : get by environment, value: 7100</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><table>
+<thead>
+<tr>
+<th>获取配置方式</th>
+<th>优点</th>
+<th>缺点</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通过 @Value 动态获取单个配置</td>
+<td>使用简单，且使用关联的链路较短</td>
+<td>1. 配置名不能被有效枚举到<br />2. 每一个配置的使用都需重新定义，使用较为麻烦<br />3. 项目强依赖配置的定义，配置不存在则会导致项目无法启动</td>
+<td>1. 项目强依赖该配置的加载，想要从源头避免因配置缺失导致的未知问题<br />2. 只想使用少数几个配置</td>
+</tr>
+<tr>
+<td>通过 @ConfigurationProperties + 前缀方式批量获取</td>
+<td>1. 使用配置只需确定 key 的前缀即能使用，有利于批量获取场景的使用 <br />2. 因采用前缀匹配，所以在使用新的相同前缀 key 的配置时无需改动代码</td>
+<td>1. 使用复杂，需定义配置类或者手动创建 bean 后引入使用<br />2. 增加新的前缀相同 key 时可能会引入不稳定因素</td>
+<td>1. 需要同时使用多前缀相同 key 的配置<br />2. 期望增加新配置但不修改代码的 properties 注入</td>
+</tr>
+<tr>
+<td>通过 Environment 动态获取单个配置</td>
+<td>1. 获取的配置的 key 可不提前定义，程序灵活性高<br />2. 配置 key 可使用枚举统一放置与管理</td>
+<td>1. 使用较复杂，需继承 Environment 接口形成工具类进行获取<br />2. 获取 key 对应的枚举与 key 定义分离，value 获取链路较长</td>
+<td>1. 只需使用少量的配置<br />2. 获取配置的 key 无提前定义，需要根据对配置的有无进行灵活使用</td>
+</tr>
+</tbody></table>
+<p>本代码示例已放置于 <a target="_blank" rel="noopener" href="https://github.com/cartoonYu/CommonUtil/tree/spring_multipart_get_config/SpringDemo/src/main/java/org/spring/demo/config">github</a>，<a target="_blank" rel="noopener" href="https://github.com/cartoonYu/CommonUtil/blob/spring_multipart_get_config/SpringDemo/src/test/java/org/spring/demo/MultipartGetConfigTest.java">测试代码位置</a>，有需要的可自取。</p>
+<p>本文首发于 <a href="https://cartoonyu.github.io/">cartoon的博客</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2022/03/07/spring/Spring%20%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/" title="Spring 获取配置的三种方式">https://cartoonyu.github.io/2022/03/07/spring/Spring 获取配置的三种方式/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/28/spring%20cloud/Eureka%E6%9C%8D%E5%8A%A1%E7%AB%AF%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%90%AD%E5%BB%BA/" rel="prev" title="Eureka服务端与客户端搭建">
+      <i class="fa fa-chevron-left"></i> Eureka服务端与客户端搭建
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/07/Algorithms/%E4%B8%80%E8%87%B4%E6%80%A7%20hash%20%E7%AE%97%E6%B3%95%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/" rel="next" title="一致性 hash 算法理解与实现">
+      一致性 hash 算法理解与实现 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Spring-%E4%B8%AD%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">Spring 中获取配置的三种方式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87-Value-%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96%E5%8D%95%E4%B8%AA%E9%85%8D%E7%BD%AE"><span class="nav-number"></span> <span class="nav-text">通过 @Value 动态获取单个配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E8%BF%87-ConfigurationProperties-%E5%89%8D%E7%BC%80%E6%96%B9%E5%BC%8F%E6%89%B9%E9%87%8F%E8%8E%B7%E5%8F%96"><span class="nav-number">1.</span> <span class="nav-text">通过 @ConfigurationProperties + 前缀方式批量获取</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E8%BF%87-Environment-%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96%E5%8D%95%E4%B8%AA%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">通过 Environment 动态获取单个配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : '9e5cac3f1d8a4c5135b026b8b64cf096',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
