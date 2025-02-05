@@ -152,6 +152,88 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/JAVA/JAVA%E9%9B%86%E5%90%88%E6%A6%82%E8%BF%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/05/08/JAVA/JAVA%E9%9B%86%E5%90%88%E6%A6%82%E8%BF%B0/" class="post-title-link" itemprop="url">JAVA集合概述</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-05-08 12:39:51" itemprop="dateCreated datePublished" datetime="2019-05-08T12:39:51+00:00">2019-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;近段时间在学习java集合，原本也没想着写笔记或者博客的。但是慢慢看下去之后发现java集合的内容繁多，但是各集合之间具有很大的共通性。所以就动了写博客的念头。<br>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在安卓开发的时候已经有在用集合了，具体是用ArrayList向上转型到list对象。 </p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;我觉得集合比数组方便的地方主要有4个：</p>
+<ul>
+<li>所有操作都是基于对象进行，符合java的核心思想。</li>
+<li>不用担心数据项的增加导致的数组溢出的情况。</li>
+<li>在插入、删除等等操作的时间开销较少。</li>
+<li>Map接口的子接口以及实现类可以存放具有映射关系的数据。</li>
+</ul>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;缺点也不是没有，可能是我学的不够深，暂时只发现了一个：Collection接口的子接口以及实现类大部分都是基于一个长度为16的数组实现，所以当插入的数据项少于16时可能会造成资源的浪费。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;java集合主要由两个接口派生而来：Collection以及Map。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;下面是两个接口的概述图</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1398594969-5cce5e9ada73d_articlex.jpg"></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;图的来源为李刚老师的《疯狂java讲义》，如有侵权请联系删除。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;其中Collection接口的Vector实现类是不建议使用的，一是年代有点久远，二是已经有更先进更好用的ArrayList可以替换使用。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;下面是Collection、Map接口以及各实现类、子接口的用法（持续更新)。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<a href="%5Bhttps://cartoonyu.github.io/cartoon-blog/post/java/java%E9%9B%86%E5%90%88-collection%E6%8E%A5%E5%8F%A3/%5D(https://cartoonyu.github.io/cartoon-blog/post/java/java%E9%9B%86%E5%90%88-collection%E6%8E%A5%E5%8F%A3/)">Collection接口</a></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<a href="%5Bhttps://cartoonyu.github.io/cartoon-blog/post/java/java%E9%9B%86%E5%90%88-iterator%E6%8E%A5%E5%8F%A3/%5D(https://cartoonyu.github.io/cartoon-blog/post/java/java%E9%9B%86%E5%90%88-iterator%E6%8E%A5%E5%8F%A3/)">Iterator接口</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/Android/Android%E5%88%A9%E7%94%A8Handler%E5%BC%82%E6%AD%A5%E8%8E%B7%E5%8F%96%E5%AD%90%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84%E4%BA%A7%E7%94%9F%E7%9A%84%E5%80%BC/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +265,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -264,7 +346,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -385,7 +467,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -499,7 +581,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">44</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

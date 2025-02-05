@@ -152,6 +152,131 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/09/29/JAVA/Queue%E4%B8%8EDeque%E7%9A%84%E5%8C%BA%E5%88%AB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/09/29/JAVA/Queue%E4%B8%8EDeque%E7%9A%84%E5%8C%BA%E5%88%AB/" class="post-title-link" itemprop="url">Queue与Deque的区别</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-09-29 13:49:34" itemprop="dateCreated datePublished" datetime="2019-09-29T13:49:34+00:00">2019-09-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>​    在研究java集合源码的时候，发现了一个很少用但是很有趣的点：Queue以及Deque，平常在写leetcode经常用LinkedList向上转型Deque作为栈或者队列使用，但是一直都不知道Queue的作用，于是就直接官方文档好了。</p>
+<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4><p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1398594969-5cce5e9ada73d_articlex.jpg"></p>
+<p>从上图看出，Queue以及Deque都是继承于Collection，Deque是Queue的子接口。</p>
+<p>下面来看一下官方文档的解释。</p>
+<blockquote>
+<p>A linear collection that supports element insertion and removal at both ends. The name <em>deque</em> is short for “double ended queue” and is usually pronounced “deck”. Most <code>Deque</code> implementations place no fixed limits on the number of elements they may contain, but this interface supports capacity-restricted deques as well as those with no fixed size limit.</p>
+</blockquote>
+<blockquote>
+<p>A collection designed for holding elements prior to processing. Besides basic <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/util/Collection.html"><code>Collection</code></a> operations, queues provide additional insertion, extraction, and inspection operations. Each of these methods exists in two forms: one throws an exception if the operation fails, the other returns a special value (either <code>null</code> or <code>false</code>, depending on the operation). The latter form of the insert operation is designed specifically for use with capacity-restricted <code>Queue</code> implementations; in most implementations, insert operations cannot fail.</p>
+</blockquote>
+<p>从Deque的解释中，我们可以得知：Deque是double ended queue，我将其理解成双端结束的队列，双端队列，可以在首尾插入或删除元素。而Queue的解释中，Queue就是简单的FIFO队列。</p>
+<p>所以在概念上来说，Queue是FIFO的单端队列，Deque是双端队列。</p>
+<p>而在使用上，又有什么差别呢？</p>
+<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h4><p>从上图我们可以得知，Queue有一个直接子类PriorityQueue，而Deque中直接子类有两个：LinkedList以及ArrayDeque。</p>
+<ul>
+<li>PriorityQueue</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926005502.png"></p>
+<p>我觉得重点就在圈定的两个单词：无边界的，优先级的堆。然后再看看源码</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926005714.png"></p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926010300.png"></p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926010034.png"></p>
+<p>在第一张图片的源码中，明显看到PriorityQueue的底层数据结构是数组，而无边界的形容，那么指明了PriorityQueue是自带扩容机制的，具体请看PriorityQueue的grow方法。</p>
+<p>在第二张第三张图片中，可以看到插入元素的时候是需要经过compareTo的处理，那么最常用就是一些范围极值的输出，类似于堆排序的用法。</p>
+<p>下面演示一下正反序输出三个元素的使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">private static void negativePrint(int[] nums) &#123;</span><br><span class="line">        PriorityQueue&lt;Integer&gt; queue=new PriorityQueue&lt;&gt;(new Comparator&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public int compare(Integer o1, Integer o2) &#123;</span><br><span class="line">                return o2-o1;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        for(int temp:nums)&#123;</span><br><span class="line">            queue.add(temp);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;倒序输出：&quot;);</span><br><span class="line">        for(int i=0;i&lt;3;i++)&#123;</span><br><span class="line">            System.out.print(queue.poll()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void positivePrint(int[] nums)&#123;</span><br><span class="line">        PriorityQueue&lt;Integer&gt; queue=new PriorityQueue&lt;&gt;();</span><br><span class="line">        for(int temp:nums)&#123;</span><br><span class="line">            queue.add(temp);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.print(&quot;正序输出：&quot;);</span><br><span class="line">        for(int i=0;i&lt;3;i++)&#123;</span><br><span class="line">            System.out.print(queue.poll()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">正序输出：1 2 3 </span><br><span class="line">倒序输出：9 8 8 </span><br></pre></td></tr></table></figure>
+
+<p>这个在一些排行榜或者输入第N个最大&#x2F;小元素会比较常用。</p>
+<ul>
+<li>LinkedList以及ArrayDeque</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926011817.png"></p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926011948.png"></p>
+<p>从官方解释来看，ArrayDeque是无初始容量的双端队列，LinkedList则是双向链表。而我们还能看到，ArrayDeque作为队列时的效率比LinkedList要高，而在栈的使用场景下，无疑具有尾结点不需判空的LinkedList较高效。</p>
+<p>下面演示ArrayDeque作为队列以及LinkedList作为栈的使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">private static void usingAsQueue() &#123;</span><br><span class="line">        Deque&lt;Integer&gt; queue=new ArrayDeque&lt;&gt;();</span><br><span class="line">        System.out.println(&quot;队列为空:&quot;+queue.isEmpty());   //判断队列是否为空</span><br><span class="line">        queue.addLast(12);   //添加元素</span><br><span class="line">        System.out.println(&quot;队列为空:&quot;+queue.isEmpty());   //判断队列是否为空</span><br><span class="line">        System.out.println(queue.peekFirst());   //获取队列首部元素</span><br><span class="line">        System.out.println(queue.pollFirst());   //获取并移除栈顶元素</span><br><span class="line">        System.out.println(&quot;队列为空:&quot;+queue.isEmpty());   //判断队列是否为空</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line">private static void usingAsStack() &#123;</span><br><span class="line">        //作为栈使用</span><br><span class="line">        Deque&lt;Integer&gt; stack=new LinkedList&lt;&gt;();</span><br><span class="line">        System.out.println(&quot;栈为空:&quot;+stack.isEmpty());   //判断栈是否为空</span><br><span class="line">        stack.addFirst(12);</span><br><span class="line">        System.out.println(&quot;栈为空:&quot;+stack.isEmpty());   //判断栈是否为空</span><br><span class="line">        System.out.println(stack.peekFirst());   //获取栈顶元素</span><br><span class="line">        System.out.println(stack.pollFirst());   //获取并移除栈顶元素</span><br><span class="line">        System.out.println(&quot;栈为空:&quot;+stack.isEmpty());   //判断栈是否为空</span><br><span class="line">        System.out.println(&quot;============================================&quot;);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>栈为空:true<br>栈为空:false<br>12<br>12</p>
+<p>栈为空:true</p>
+<p>队列为空:true<br>队列为空:false<br>12<br>12<br>队列为空:true</p>
+</blockquote>
+<blockquote>
+<p>小提示</p>
+<p>在Deque中，获取并移除元素的方法有两个，分别是removeXxx以及peekXxx。</p>
+<p>存在元素时，两者的处理都是一样的。但是当Deque内为空时，removeXxx会直接抛出NoSuchElementException，而peekXxx则会返回null。</p>
+<p>所以无论在实际开发或者算法时，推荐使用peekXxx方法</p>
+</blockquote>
+<p>其实ArrayDeque和LinkedList都可以作为栈以及队列使用，但是从执行效率来说，ArrayDeque作为队列以及LinkedList作为栈使用会是更好的选择。</p>
+<p>另外，我在leetcode看到有人采用Vector下的Stack，这个同步加锁粒度过大(对象级)，另外我觉得算法中没有线程同步的需要吧。</p>
+<ul>
+<li>小结</li>
+</ul>
+<p>PriorityQueue可以作为堆使用，而且可以根据传入的Comparator实现大小的调整，会是一个很好的选择。</p>
+<p>ArrayDeque通常作为栈或队列使用，但是栈的效率不如LinkedList高。</p>
+<p>LinkedList通常作为栈或队列使用，但是队列的效率不如ArrayQueue高。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在java中，Queue被定义成单端队列使用，Deque被定义成双端队列使用。</p>
+<p>而由于双端队列的定义，Deque可以作为栈或者队列使用，而Queue只能作为队列或者依赖于子类的实现作为堆使用。</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/java/queue%E4%B8%8Edeque%E7%9A%84%E5%8C%BA%E5%88%AB/">https://cartoonyu.github.io/cartoon-blog/post/java/queue%E4%B8%8Edeque%E7%9A%84%E5%8C%BA%E5%88%AB/</a></strong></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/09/03/JAVA/%E6%97%A0%E7%AC%A6%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6%E4%B8%8E%E6%9C%89%E7%AC%A6%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6%E7%9A%84%E5%8C%BA%E5%88%AB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +308,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -282,7 +407,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -386,7 +511,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -502,7 +627,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -632,7 +757,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -889,7 +1014,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -1144,7 +1269,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -1319,7 +1444,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -1387,7 +1512,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
+                <time title="Modified: 2025-02-05 15:33:48" itemprop="dateModified" datetime="2025-02-05T15:33:48+00:00">2025-02-05</time>
               </span>
 
           
@@ -1406,139 +1531,6 @@
 <h4 id="中文名称与英文名称"><a href="#中文名称与英文名称" class="headerlink" title="中文名称与英文名称"></a>中文名称与英文名称</h4><p>&amp;：按位与(Bitwise and)<br>&amp;&amp;：逻辑与(logical and)<br>|：按位或(Bitwise or)<br>||：逻辑或(logical or)<br><BR /></p>
 <h4 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h4><p>若第一个条件就可以决定表达式的值，逻辑运算符不会继续检查后续条件，而位运算符则会全部检查。</p>
 
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/JAVA/Stack%EF%BC%8CArrayDeque%EF%BC%8CLinkedList%E7%9A%84%E5%8C%BA%E5%88%AB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/05/08/JAVA/Stack%EF%BC%8CArrayDeque%EF%BC%8CLinkedList%E7%9A%84%E5%8C%BA%E5%88%AB/" class="post-title-link" itemprop="url">Stack，ArrayDeque，LinkedList的区别</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-05-08 13:38:27" itemprop="dateCreated datePublished" datetime="2019-05-08T13:38:27+00:00">2019-05-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-01-05 09:56:12" itemprop="dateModified" datetime="2025-01-05T09:56:12+00:00">2025-01-05</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;这段时间把疯狂JAVA再看了一遍，发现Stack，ArrayDeque，LinkedList都可以作为栈使用，所以就稍微从性能以及实现的细节对比这三者的区别。</p>
-<h2 id="类继承树"><a href="#类继承树" class="headerlink" title="类继承树"></a>类继承树</h2><p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1398594969-5cce5e9ada73d_articlex.jpg"></p>
-<h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><h3 id="底层数据存储方式"><a href="#底层数据存储方式" class="headerlink" title="底层数据存储方式"></a>底层数据存储方式</h3><table>
-<thead>
-<tr>
-<th>&amp;nbsp;</th>
-<th>存储方式</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Stack</td>
-<td>长度为10的数组</td>
-</tr>
-<tr>
-<td>ArrayDeque</td>
-<td>长度为16的数组</td>
-</tr>
-<tr>
-<td>LinkedList</td>
-<td>链表</td>
-</tr>
-</tbody></table>
-<h3 id="方法参照表"><a href="#方法参照表" class="headerlink" title="方法参照表"></a>方法参照表</h3><table>
-<thead>
-<tr>
-<th>Stack</th>
-<th>ArrayDeque</th>
-<th>LinkedList</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>push(e)</td>
-<td>addFirst(e)&#x2F;offerFirst(e)</td>
-<td>addFirst(e)&#x2F;offerFirst(e)</td>
-</tr>
-<tr>
-<td>pop()</td>
-<td>removeFirst()&#x2F;pollFirst()</td>
-<td>removeFirst()&#x2F;pollFirst()</td>
-</tr>
-<tr>
-<td>peek()</td>
-<td>getFirst()&#x2F;peekFirst()</td>
-<td>getFirst()&#x2F;peekFirst()</td>
-</tr>
-</tbody></table>
-<h3 id="线程安全"><a href="#线程安全" class="headerlink" title="线程安全"></a>线程安全</h3><table>
-<thead>
-<tr>
-<th>&amp;nbsp;</th>
-<th>线程安全</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Stack</td>
-<td>线程同步</td>
-</tr>
-<tr>
-<td>ArrayDeque</td>
-<td>线程不同步</td>
-</tr>
-<tr>
-<td>LinkedList</td>
-<td>线程不同步</td>
-</tr>
-</tbody></table>
-<h3 id="性能选项"><a href="#性能选项" class="headerlink" title="性能选项"></a>性能选项</h3><p>&amp;nbsp;&amp;nbsp;&amp;nbsp;通常情况下，不推荐使用Vector以及其子类Stack</p>
-<h4 id="1-需要线程同步"><a href="#1-需要线程同步" class="headerlink" title="1.需要线程同步"></a>1.需要线程同步</h4><p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;使用Collections工具类中synchronizedXxx()将线程不同步的ArrayDeque以及LinkedList转换成线程同步。</p>
-<h4 id="2-频繁的插入、删除操作：LinkedList"><a href="#2-频繁的插入、删除操作：LinkedList" class="headerlink" title="2.频繁的插入、删除操作：LinkedList"></a>2.频繁的插入、删除操作：LinkedList</h4><h4 id="3-频繁的随机访问操作：ArrayDeque"><a href="#3-频繁的随机访问操作：ArrayDeque" class="headerlink" title="3.频繁的随机访问操作：ArrayDeque"></a>3.频繁的随机访问操作：ArrayDeque</h4><h4 id="4-未知的初始数据量：LinkedList"><a href="#4-未知的初始数据量：LinkedList" class="headerlink" title="4.未知的初始数据量：LinkedList"></a>4.未知的初始数据量：LinkedList</h4>
       
     </div>
 
@@ -1622,7 +1614,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">44</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
