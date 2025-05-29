@@ -152,6 +152,383 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2022/03/07/spring/Spring%20%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/07/spring/Spring%20%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="post-title-link" itemprop="url">Spring 获取配置的三种方式</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-03-07 23:39:38" itemprop="dateCreated datePublished" datetime="2022-03-07T23:39:38+08:00">2022-03-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>最近在写框架时遇到需要根据特定配置（可能不存在）加载 bean 的需求，所以就学习了下 Spring 中如何获取配置的几种方式。</p>
+<h4 id="Spring-中获取配置的三种方式"><a href="#Spring-中获取配置的三种方式" class="headerlink" title="Spring 中获取配置的三种方式"></a>Spring 中获取配置的三种方式</h4><blockquote>
+<ol>
+<li>通过 @Value 方式动态获取单个配置</li>
+<li>通过 @ConfigurationProperties + 前缀方式批量获取配置</li>
+<li>通过 Environment 动态获取单个配置</li>
+</ol>
+</blockquote>
+<h3 id="通过-Value-动态获取单个配置"><a href="#通过-Value-动态获取单个配置" class="headerlink" title="通过 @Value 动态获取单个配置"></a>通过 @Value 动态获取单个配置</h3><ol>
+<li><p>作用</p>
+<ol>
+<li>可修饰到任一变量获取，使用较灵活</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li>使用简单，且使用关联的链路较短</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li><p>配置名不能被有效枚举到</p>
+</li>
+<li><p>每一个配置的使用都需重新定义，使用较为麻烦</p>
+</li>
+<li><p>项目强依赖配置的定义，配置不存在则会导致项目无法启动</p>
+</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li><p>项目强依赖该配置的加载，想要从源头避免因配置缺失导致的未知问题</p>
+</li>
+<li><p>只想使用少数几个配置</p>
+</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConfigByValueAnnotation</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;server.port&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String serverPort;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getServerPort</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> serverPort;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>测试代码</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@DisplayName(&quot;multipart get config&quot;)</span></span><br><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MultipartGetConfigTest</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(MultipartGetConfigTest.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> ConfigByValueAnnotation configByValueAnnotation;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">getByValueAnnotation</span><span class="params">()</span>&#123;</span><br><span class="line">        log.info(<span class="string">&quot;get by @Value, value: &#123;&#125;&quot;</span>, configByValueAnnotation.getServerPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>测试结果</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.spring.demo.MultipartGetConfigTest   : get by @Value, value: 7100</span><br></pre></td></tr></table></figure>
+
+<h4 id="通过-ConfigurationProperties-前缀方式批量获取"><a href="#通过-ConfigurationProperties-前缀方式批量获取" class="headerlink" title="通过 @ConfigurationProperties + 前缀方式批量获取"></a>通过 @ConfigurationProperties + 前缀方式批量获取</h4><ol>
+<li><p>作用</p>
+<ol>
+<li>用于配置类的修饰或批量配置的获取</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li><p>使用配置只需确定 key 的前缀即能使用，有利于批量获取场景的使用</p>
+</li>
+<li><p>因采用前缀匹配，所以在使用新的相同前缀 key 的配置时无需改动代码</p>
+</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li><p>使用复杂，需定义配置类或者手动创建 bean 后引入使用</p>
+</li>
+<li><p>增加新的前缀相同 key 时可能会引入不稳定因素</p>
+</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li><p>需要同时使用多前缀相同 key 的配置</p>
+</li>
+<li><p>期望增加新配置但不修改代码的 properties 注入</p>
+</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">@ConfigurationProperties(prefix = &quot;server&quot;, ignoreInvalidFields = true)</span><br><span class="line">public class ConfigByConfigurationProperties &#123;</span><br><span class="line"></span><br><span class="line">    private Integer port;</span><br><span class="line"></span><br><span class="line">    public Integer getPort() &#123;</span><br><span class="line">        return port;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public ConfigByConfigurationProperties setPort(Integer port) &#123;</span><br><span class="line">        this.port = port;</span><br><span class="line">        return this;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class ConfigByConfigurationPropertiesV2 &#123;</span><br><span class="line"></span><br><span class="line">    @Bean(&quot;configByValueAnnotationV2&quot;)</span><br><span class="line">    @ConfigurationProperties(prefix = &quot;server2&quot;)</span><br><span class="line">    public Properties properties()&#123;</span><br><span class="line">        return new Properties();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>测试代码</li>
+</ol>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">@DisplayName(&quot;multipart get config&quot;)</span><br><span class="line">@SpringBootTest</span><br><span class="line">public class MultipartGetConfigTest &#123;</span><br><span class="line"></span><br><span class="line">       private static final Logger log = LoggerFactory.getLogger(MultipartGetConfigTest.class);</span><br><span class="line">    </span><br><span class="line">       @Autowired</span><br><span class="line">       private ConfigByConfigurationProperties configByConfigurationProperties;</span><br><span class="line">    </span><br><span class="line">       @Autowired</span><br><span class="line">       @Qualifier(&quot;configByValueAnnotationV2&quot;)</span><br><span class="line">       private Properties properties;</span><br><span class="line">    </span><br><span class="line">       @Test</span><br><span class="line">       public void getByConfigurationProperties()&#123;</span><br><span class="line">           log.info(&quot;get by @ConfigurationProperties, value: &#123;&#125;&quot;, configByConfigurationProperties.getPort());</span><br><span class="line">           log.info(&quot;get by @ConfigurationProperties and manual create bean, value: &#123;&#125;&quot;, properties.getProperty(&quot;port&quot;));</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>测试结果</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">org.spring.demo.MultipartGetConfigTest   : get by @ConfigurationProperties, value: 7100</span><br><span class="line">org.spring.demo.MultipartGetConfigTest   : get by @ConfigurationProperties and manual create bean, value: 7100</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="通过-Environment-动态获取单个配置"><a href="#通过-Environment-动态获取单个配置" class="headerlink" title="通过 Environment 动态获取单个配置"></a>通过 Environment 动态获取单个配置</h4><ol>
+<li><p>作用</p>
+<ol>
+<li>用于动态在程序代码中获取配置，而配置 key 不需提前定义</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li><p>获取的配置的 key 可不提前定义，程序灵活性高</p>
+</li>
+<li><p>配置 key 可使用枚举统一放置与管理</p>
+</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li><p>使用较复杂，需继承 Environment 接口形成工具类进行获取</p>
+</li>
+<li><p>获取 key 对应的枚举与 key 定义分离，value 获取链路较长</p>
+</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li><p>只需使用少量的配置</p>
+</li>
+<li><p>获取配置的 key 无提前定义，需要根据对配置的有无进行灵活使用</p>
+</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+</li>
+</ol>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConfigByEnvironment</span> <span class="keyword">implements</span> <span class="title class_">EnvironmentAware</span> &#123;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(ConfigByEnvironment.class);</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">private</span> Environment environment;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">public</span> Optional&lt;String&gt; <span class="title function_">get</span><span class="params">(String configKey)</span>&#123;</span><br><span class="line">           <span class="type">String</span> <span class="variable">config</span> <span class="operator">=</span> environment.getProperty(configKey);</span><br><span class="line">           <span class="keyword">return</span> Objects.isNull(config) ? Optional.empty() : Optional.of(config);</span><br><span class="line">       &#125;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">get</span><span class="params">(String configKey, Consumer&lt;String&gt; consumer)</span>&#123;</span><br><span class="line">           Optional&lt;String&gt; config = get(configKey);</span><br><span class="line">           <span class="keyword">if</span>(!config.isPresent())&#123;</span><br><span class="line">               log.warn(<span class="string">&quot;application config, get config by key fail, key: &#123;&#125;&quot;</span>, configKey);</span><br><span class="line">           &#125;</span><br><span class="line">           config.ifPresent(consumer);</span><br><span class="line">       &#125;</span><br><span class="line">    </span><br><span class="line">       <span class="meta">@Override</span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setEnvironment</span><span class="params">(<span class="meta">@NonNull</span> Environment environment)</span> &#123;</span><br><span class="line">           <span class="built_in">this</span>.environment = environment;</span><br><span class="line">       &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">ConfigByEnvironmentKey</span> &#123;</span><br><span class="line"></span><br><span class="line">       SERVER_PORT(<span class="string">&quot;server.port&quot;</span>, <span class="string">&quot;server port&quot;</span>);</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">private</span> String key;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">private</span> String description;</span><br><span class="line">    </span><br><span class="line">       ConfigByEnvironmentKey(String key, String description) &#123;</span><br><span class="line">           <span class="built_in">this</span>.key = key;</span><br><span class="line">           <span class="built_in">this</span>.description = description;</span><br><span class="line">       &#125;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">public</span> String <span class="title function_">getKey</span><span class="params">()</span> &#123;</span><br><span class="line">           <span class="keyword">return</span> key;</span><br><span class="line">       &#125;</span><br><span class="line">    </span><br><span class="line">       <span class="keyword">public</span> String <span class="title function_">getDescription</span><span class="params">()</span> &#123;</span><br><span class="line">           <span class="keyword">return</span> description;</span><br><span class="line">       &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="6">
+<li>测试代码</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@DisplayName(&quot;multipart get config&quot;)</span><br><span class="line">   @SpringBootTest</span><br><span class="line">   public class MultipartGetConfigTest &#123;</span><br><span class="line"></span><br><span class="line">       private static final Logger log = LoggerFactory.getLogger(MultipartGetConfigTest.class);</span><br><span class="line">    </span><br><span class="line">       @Autowired</span><br><span class="line">       private ConfigByEnvironment configByEnvironment;</span><br><span class="line">    </span><br><span class="line">       @Test</span><br><span class="line">       public void getByEnvironment()&#123;</span><br><span class="line">           configByEnvironment.get(ConfigByEnvironmentKey.SERVER_PORT.getKey()).ifPresent(value -&gt; log.info(&quot;get by environment, value: &#123;&#125;&quot;, value));</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>测试结果</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.spring.demo.MultipartGetConfigTest   : get by environment, value: 7100</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><table>
+<thead>
+<tr>
+<th>获取配置方式</th>
+<th>优点</th>
+<th>缺点</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通过 @Value 动态获取单个配置</td>
+<td>使用简单，且使用关联的链路较短</td>
+<td>1. 配置名不能被有效枚举到<br />2. 每一个配置的使用都需重新定义，使用较为麻烦<br />3. 项目强依赖配置的定义，配置不存在则会导致项目无法启动</td>
+<td>1. 项目强依赖该配置的加载，想要从源头避免因配置缺失导致的未知问题<br />2. 只想使用少数几个配置</td>
+</tr>
+<tr>
+<td>通过 @ConfigurationProperties + 前缀方式批量获取</td>
+<td>1. 使用配置只需确定 key 的前缀即能使用，有利于批量获取场景的使用 <br />2. 因采用前缀匹配，所以在使用新的相同前缀 key 的配置时无需改动代码</td>
+<td>1. 使用复杂，需定义配置类或者手动创建 bean 后引入使用<br />2. 增加新的前缀相同 key 时可能会引入不稳定因素</td>
+<td>1. 需要同时使用多前缀相同 key 的配置<br />2. 期望增加新配置但不修改代码的 properties 注入</td>
+</tr>
+<tr>
+<td>通过 Environment 动态获取单个配置</td>
+<td>1. 获取的配置的 key 可不提前定义，程序灵活性高<br />2. 配置 key 可使用枚举统一放置与管理</td>
+<td>1. 使用较复杂，需继承 Environment 接口形成工具类进行获取<br />2. 获取 key 对应的枚举与 key 定义分离，value 获取链路较长</td>
+<td>1. 只需使用少量的配置<br />2. 获取配置的 key 无提前定义，需要根据对配置的有无进行灵活使用</td>
+</tr>
+</tbody></table>
+<p>本代码示例已放置于 <a target="_blank" rel="noopener" href="https://github.com/cartoonYu/CommonUtil/tree/spring_multipart_get_config/SpringDemo/src/main/java/org/spring/demo/config">github</a>，<a target="_blank" rel="noopener" href="https://github.com/cartoonYu/CommonUtil/blob/spring_multipart_get_config/SpringDemo/src/test/java/org/spring/demo/MultipartGetConfigTest.java">测试代码位置</a>，有需要的可自取。</p>
+<p>本文首发于 <a href="https://cartoonyu.github.io/">cartoon的博客</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2020/10/28/spring%20cloud/Eureka%E6%9C%8D%E5%8A%A1%E7%AB%AF%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%90%AD%E5%BB%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/28/spring%20cloud/Eureka%E6%9C%8D%E5%8A%A1%E7%AB%AF%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%90%AD%E5%BB%BA/" class="post-title-link" itemprop="url">Eureka服务端与客户端搭建</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-28 14:56:50" itemprop="dateCreated datePublished" datetime="2020-10-28T14:56:50+08:00">2020-10-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这段时间在构建自己的开发工具集，避不开的就是各种中间件访问层的搭建。而 spring cloud 唯二绕不开的就是 eureka 了，所以就重复造轮子，以后忘记了也有所参考。</p>
+<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><h4 id="前期准备"><a href="#前期准备" class="headerlink" title="前期准备"></a>前期准备</h4><blockquote>
+<p>maven&#x2F;gradle</p>
+</blockquote>
+<h4 id="eureka-服务器搭建"><a href="#eureka-服务器搭建" class="headerlink" title="eureka 服务器搭建"></a>eureka 服务器搭建</h4><ol>
+<li><p>新建 spring boot 空项目</p>
+<p>这一步其实是非必要的，你也可以新建 maven&#x2F;gradle 空项目或者普通的 web项目， 只是 spring boot 的自动配置比较方便。</p>
+</li>
+<li><p>修改 pom.xml 或者 build.gradle 文件（此处示例为 pom.xml 文件）</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span> <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3.4.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span> <span class="comment">&lt;!-- lookup parent from repository --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>eureka<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>eureka<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">description</span>&gt;</span>Demo project for Spring Boot<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">spring-cloud.version</span>&gt;</span>Hoxton.SR8<span class="tag">&lt;/<span class="name">spring-cloud.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-netflix-eureka-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.junit.vintage<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit-vintage-engine<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spring-cloud.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.8.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">encoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">encoding</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>修改项目配置文件 application.yml</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8761</span></span><br><span class="line"><span class="attr">eureka:</span></span><br><span class="line">  <span class="attr">instance:</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">eureka-server</span></span><br><span class="line">  <span class="attr">client:</span></span><br><span class="line">    <span class="attr">register-with-eureka:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">fetch-registry:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">service-url:</span></span><br><span class="line">      <span class="attr">defaultZone:</span> <span class="string">http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/</span></span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>启动类增加 @EnableEurekaServer 注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableEurekaServer</span></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">EurekaApplication</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        SpringApplication.run(EurekaApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>经过上述步骤启动项目，eureka服务器就启动完成了。</p>
+<h4 id="服务提供者与消费者构建"><a href="#服务提供者与消费者构建" class="headerlink" title="服务提供者与消费者构建"></a>服务提供者与消费者构建</h4><h5 id="服务提供者构建"><a href="#服务提供者构建" class="headerlink" title="服务提供者构建"></a>服务提供者构建</h5><ol>
+<li>新建 spring boot 空项目</li>
+<li>修改 pom.xml 或者 build.gradle 文件（此处示例为 pom.xml 文件）</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span> <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3.4.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span> <span class="comment">&lt;!-- lookup parent from repository --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>eurekaclient<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>EurekaClient<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">description</span>&gt;</span>Demo project for Spring Boot<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">spring-cloud.version</span>&gt;</span>Hoxton.SR8<span class="tag">&lt;/<span class="name">spring-cloud.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-netflix-eureka-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.junit.vintage<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit-vintage-engine<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spring-cloud.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.8.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">encoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">encoding</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="3">
+<li>修改项目配置文件 application.yml</li>
+</ol>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">eureka:</span></span><br><span class="line">  <span class="attr">client:</span></span><br><span class="line">    <span class="attr">service-url:</span></span><br><span class="line">      <span class="attr">defaultZone:</span> <span class="string">http://cartoon-ali.com:6001/eureka/</span>   <span class="comment"># 取决于你的eureka地址</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">DemoProducer</span></span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="4">
+<li>新建模拟接口</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TextController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;text&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">text</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;eureka producer&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h5 id="服务消费者构建"><a href="#服务消费者构建" class="headerlink" title="服务消费者构建"></a>服务消费者构建</h5><ol>
+<li>新建 spring boot 空项目</li>
+<li>修改 pom.xml 或者 build.gradle 文件（此处示例为 pom.xml 文件）</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span> <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3.4.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span> <span class="comment">&lt;!-- lookup parent from repository --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>eurekaclient2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>eurekaclient2<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">description</span>&gt;</span>Demo project for Spring Boot<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">spring-cloud.version</span>&gt;</span>Hoxton.SR8<span class="tag">&lt;/<span class="name">spring-cloud.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.junit.vintage<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit-vintage-engine<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-netflix-eureka-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spring-cloud.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.8.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">encoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">encoding</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="3">
+<li>修改项目配置文件 application.yml</li>
+</ol>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">eureka:</span></span><br><span class="line">  <span class="attr">client:</span></span><br><span class="line">    <span class="attr">service-url:</span></span><br><span class="line">      <span class="attr">defaultZone:</span> <span class="string">http://cartoon-ali.com:6001/eureka/</span>    <span class="comment"># 取决于你的eureka地址</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">DemoConsumer</span></span><br><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8081</span></span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="4">
+<li>模拟消费接口构建</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TextController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RestTemplate restTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/text&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">text</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> restTemplate.getForObject(<span class="string">&quot;http://DEMOPRODUCER/text&quot;</span>, String.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h5><p>同时启动服务提供者与消费者，调用<a target="_blank" rel="noopener" href="http://localhost:8081/text">消费者模拟消费接口</a>，即能看到调用的结果。</p>
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>项目代码已收录在我的<a target="_blank" rel="noopener" href="https://github.com/cartoonYu/CommonUtil">个人工具集</a>。因为我在工具集全面应用了 easyopen 做接口的收拢，所以关于 eureka 相关的内容可能有点不一样，但是总体步骤是一样的，欢迎 star</p>
+<p><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于 <a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>转载请注明出处:</strong><a href="https://cartoonyu.github.io/cartoon-blog/post/spring-cloud/Eureka%E6%9C%8D%E5%8A%A1%E7%AB%AF%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%90%AD%E5%BB%BA/">https://cartoonyu.github.io/cartoon-blog/post/spring-cloud/Eureka服务端与客户端搭建/</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2020/09/13/message%20queue/kafka%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1041,260 +1418,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC)/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC)/" class="post-title-link" itemprop="url">JSON工具类的构建(后端版本)</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-10-05 06:14:20" itemprop="dateCreated datePublished" datetime="2019-10-05T06:14:20+08:00">2019-10-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在前后端交互的选择上，之前一直采用的是模板引擎(因为我只负责后端)。<br>而这次的一个算是作业吧，前后端都是我，所以就研究了一下JSON交互在java web的应用(主要是前端)。</p>
-<h3 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h3><ul>
-<li><p>前后端耦合</p>
-<ul>
-<li>模板引擎加载只是将jsp的交互方式移植到html上，前端文件格式改变了，但是jsp中前后端耦合的缺点没有改变。</li>
-<li>json交互中，数据通过js&#x2F;jquery动态加载在页面上，数据与页面进行分离，页面只是单纯用于展示。</li>
-</ul>
-</li>
-<li><p>数据加载逻辑复用</p>
-<ul>
-<li>模板引擎的方式中，如果有很多相似的页面元素以及一样的数据返回格式，那只是复制粘贴大法了。</li>
-<li>在模板引擎的例子中，只需要定义一套数据加载模型，传入不同的页面元素id以及数据则能实现逻辑复用</li>
-</ul>
-</li>
-<li><p>后端接口的复用<br>  因为我的学习路线的问题，所以我开发过安卓原生一段时间。</p>
-<ul>
-<li>模板引擎式的加载必须使用webView组件加载，且需另进行原生构建时接口也要另外构建。</li>
-<li>json交互，谷歌爸爸鼓励使用json进行交互(一年多前的事，现在不清楚了)，且安卓原生内置GJSON进行json解析与构建，所以可以在原生以及跨平台的构建有很好的平衡。</li>
-</ul>
-</li>
-</ul>
-<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>既然选择了json交互的方式，而java官方据我所知是没有内置对json的支持，Spring在Controller的层面使用RestContrller注解实现对json的支持。<br>但是我个人强迫症很强，我对Contrller(或者说是Presenter)的定义是</p>
-<ul>
-<li>对用户访问的url作页面的映射</li>
-<li>对用户触发的事件进行数据的传递与返回<br>正是这两点的定义，我需要在Service层组合统一格式的结果返回到上层，所以需要第三方json支持。<br>可选择的JSON库有很多，GSON，FastJson，Jackson，根据<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/YdMgNUpxXi-4hSWSql5IgA">对比</a>，我选择为马老师充值一波。</li>
-</ul>
-<h3 id="需求拆分"><a href="#需求拆分" class="headerlink" title="需求拆分"></a>需求拆分</h3><p>我初步定义的需求主要有三个</p>
-<ul>
-<li>Service传递统一处理结果到上层</li>
-<li>无论是单一数据实体或者List型数据处理的结果是一样的</li>
-<li>处理过程是独立的，不依赖于实体类的支持</li>
-</ul>
-<h3 id="格式设计"><a href="#格式设计" class="headerlink" title="格式设计"></a>格式设计</h3><p>在网上看过很多后端返回数据的格式，很多都是返回一个处理的status以及具体的数据，而这个status是根据http状态码进行设定的，因为这次时间比较紧，所以我就采用了这个方案。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;status&quot;: &quot;status&quot;,</span><br><span class="line">    &quot;object&quot;: &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="代码设计"><a href="#代码设计" class="headerlink" title="代码设计"></a>代码设计</h3><p>因为我希望Controller能直接拿到结果，所以构建结果的过程全放在Result类中。<br>而结果构建我主要分为两种：只有状态码(通知处理结果)以及具有返回结果(数据显示)，而根据结果的个人也分为两种：单个数据以及List型数据。</p>
-<h3 id="实际代码"><a href="#实际代码" class="headerlink" title="实际代码"></a>实际代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Getter</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ResultSet</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> JSONObject result;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ResultSet</span><span class="params">()</span>&#123;</span><br><span class="line">        result=<span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化状态码</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> status</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">initStatus</span><span class="params">(String status)</span>&#123;</span><br><span class="line">        result.put(<span class="string">&quot;status&quot;</span>, status);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化状态码以及返回数据</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> status</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> obj</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">initData</span><span class="params">(String status,Object obj)</span>&#123;</span><br><span class="line">        initStatus(status);</span><br><span class="line">        <span class="keyword">if</span>(obj <span class="keyword">instanceof</span> List)&#123;</span><br><span class="line">            List list=(List)obj;</span><br><span class="line">            JSONArray array=<span class="keyword">new</span> <span class="title class_">JSONArray</span>();</span><br><span class="line">            <span class="keyword">for</span>(Object object:list)&#123;</span><br><span class="line">                array.add(putObjectToJSON(object));</span><br><span class="line">            &#125;</span><br><span class="line">            result.put(<span class="string">&quot;object&quot;</span>,array);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            result.put(<span class="string">&quot;object&quot;</span>,putObjectToJSON(obj));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将单个Object放入json文件中</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> obj</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> JSONObject <span class="title function_">putObjectToJSON</span><span class="params">(Object obj)</span>&#123;</span><br><span class="line">        JSONObject result=<span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">        Field[] fields=obj.getClass().getDeclaredFields();</span><br><span class="line">        <span class="keyword">for</span>(Field field:fields)&#123;</span><br><span class="line">            field.setAccessible(<span class="literal">true</span>);</span><br><span class="line">            String fieldName=field.getType().getSimpleName();</span><br><span class="line">            <span class="keyword">if</span>(fieldName.equals(<span class="string">&quot;Department&quot;</span>)||fieldName.equals(<span class="string">&quot;Job&quot;</span>))&#123;</span><br><span class="line">                JSONObject tempJson=<span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="type">Object</span> <span class="variable">tempObject</span> <span class="operator">=</span> field.get(obj);</span><br><span class="line">                    Field[] tempFields=tempObject.getClass().getDeclaredFields();</span><br><span class="line">                    <span class="keyword">for</span>(Field tempField:tempFields)&#123;</span><br><span class="line">                        tempField.setAccessible(<span class="literal">true</span>);</span><br><span class="line">                        tempJson.put(tempField.getName(),tempField.get(tempObject));</span><br><span class="line">                        tempField.setAccessible(<span class="literal">false</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span>(fieldName.equals(<span class="string">&quot;Department&quot;</span>))&#123;</span><br><span class="line">                    result.put(<span class="string">&quot;depart&quot;</span>,tempJson);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> &#123;</span><br><span class="line">                    result.put(<span class="string">&quot;job&quot;</span>,tempJson);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    result.put(field.getName(),field.get(obj));</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            field.setAccessible(<span class="literal">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="代码思路"><a href="#代码思路" class="headerlink" title="代码思路"></a>代码思路</h3><ol>
-<li>Service通过initStatus&#x2F;initData传入数据&#x2F;状态码进行对象的生成</li>
-<li>Controller通过result的getter方法获取处理结果</li>
-<li>单个数据以及List数据的处理<ol>
-<li>单个对象直接通过putObjectToJSON进行处理</li>
-<li>List数据通过对象类型判断，向下转型，遍历元素形成JSONArray进行处理，对元素处理的方法也是采用putObjectToJSON</li>
-</ol>
-</li>
-<li>嵌套对象的处理 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public class Employee &#123;</span><br><span class="line"></span><br><span class="line">   private int id;</span><br><span class="line"></span><br><span class="line">   private Department depart;</span><br><span class="line"></span><br><span class="line">   private Job job;</span><br><span class="line"></span><br><span class="line">   private String name;</span><br><span class="line"></span><br><span class="line">	..................</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>通过反射获取对象的所有成员变量类型以及对应的值</li>
-<li>遇到上述bean类含有嵌套自定义对象时，递归生成json文件加入到结果json中</li>
-</ol>
-</li>
-</ol>
-<h3 id="结果演示"><a href="#结果演示" class="headerlink" title="结果演示"></a>结果演示</h3><p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/174825768453.png"></p>
-<p>​                         （左为单object型，右为List型）</p>
-<h3 id="不足之处"><a href="#不足之处" class="headerlink" title="不足之处"></a>不足之处</h3><ol>
-<li>状态码的设置应该采用枚举类的赋值，能更好的约束返回的状态码</li>
-<li>在对象转换方面，应该采用配置扫描的方式。在配置文件中写入bean的包所在，在嵌套对象转换时通过扫描配置文件的信息判断</li>
-<li>在嵌套对象的转换方面，只是做了一层的嵌套转换，更多层的没有考虑到，之后会再重构的</li>
-<li>对异常处理方面，只是简单的输出错误信息。应该对错误信息进行进一步的处理</li>
-</ol>
-<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>因为这次时间比较赶，从项目的立项到成品的建立花了5天时间，所以注意到很多细节，但是没有去处理。<br>有想过之后有时间的话将这个工具类的细节完善起来，形成jar包供自己或者供开源。</p>
-<h3 id="相关连接"><a href="#相关连接" class="headerlink" title="相关连接"></a>相关连接</h3><p>这只是后台对结果的统一处理，我另外写了一篇文章：<a href="%5Bhttps://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%89%8D%E7%AB%AF%E7%89%88%E6%9C%AC/%5D(https://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%89%8D%E7%AB%AF%E7%89%88%E6%9C%AC/)">JSON工具类的构建(前端版本)</a>，配合使用效果更佳哦~</p>
-<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC/">https://cartoonyu.github.io/cartoon-blog/post/json/json工具类的构建后端版本/</a></strong></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/09/29/JAVA/Queue%E4%B8%8EDeque%E7%9A%84%E5%8C%BA%E5%88%AB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/09/29/JAVA/Queue%E4%B8%8EDeque%E7%9A%84%E5%8C%BA%E5%88%AB/" class="post-title-link" itemprop="url">Queue与Deque的区别</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-09-29 13:49:34" itemprop="dateCreated datePublished" datetime="2019-09-29T13:49:34+08:00">2019-09-29</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-04-05 16:41:25" itemprop="dateModified" datetime="2024-04-05T16:41:25+08:00">2024-04-05</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>​    在研究java集合源码的时候，发现了一个很少用但是很有趣的点：Queue以及Deque，平常在写leetcode经常用LinkedList向上转型Deque作为栈或者队列使用，但是一直都不知道Queue的作用，于是就直接官方文档好了。</p>
-<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4><p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/1398594969-5cce5e9ada73d_articlex.jpg"></p>
-<p>从上图看出，Queue以及Deque都是继承于Collection，Deque是Queue的子接口。</p>
-<p>下面来看一下官方文档的解释。</p>
-<blockquote>
-<p>A linear collection that supports element insertion and removal at both ends. The name <em>deque</em> is short for “double ended queue” and is usually pronounced “deck”. Most <code>Deque</code> implementations place no fixed limits on the number of elements they may contain, but this interface supports capacity-restricted deques as well as those with no fixed size limit.</p>
-</blockquote>
-<blockquote>
-<p>A collection designed for holding elements prior to processing. Besides basic <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/util/Collection.html"><code>Collection</code></a> operations, queues provide additional insertion, extraction, and inspection operations. Each of these methods exists in two forms: one throws an exception if the operation fails, the other returns a special value (either <code>null</code> or <code>false</code>, depending on the operation). The latter form of the insert operation is designed specifically for use with capacity-restricted <code>Queue</code> implementations; in most implementations, insert operations cannot fail.</p>
-</blockquote>
-<p>从Deque的解释中，我们可以得知：Deque是double ended queue，我将其理解成双端结束的队列，双端队列，可以在首尾插入或删除元素。而Queue的解释中，Queue就是简单的FIFO队列。</p>
-<p>所以在概念上来说，Queue是FIFO的单端队列，Deque是双端队列。</p>
-<p>而在使用上，又有什么差别呢？</p>
-<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h4><p>从上图我们可以得知，Queue有一个直接子类PriorityQueue，而Deque中直接子类有两个：LinkedList以及ArrayDeque。</p>
-<ul>
-<li>PriorityQueue</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926005502.png"></p>
-<p>我觉得重点就在圈定的两个单词：无边界的，优先级的堆。然后再看看源码</p>
-<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926005714.png"></p>
-<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926010300.png"></p>
-<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926010034.png"></p>
-<p>在第一张图片的源码中，明显看到PriorityQueue的底层数据结构是数组，而无边界的形容，那么指明了PriorityQueue是自带扩容机制的，具体请看PriorityQueue的grow方法。</p>
-<p>在第二张第三张图片中，可以看到插入元素的时候是需要经过compareTo的处理，那么最常用就是一些范围极值的输出，类似于堆排序的用法。</p>
-<p>下面演示一下正反序输出三个元素的使用</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">private static void negativePrint(int[] nums) &#123;</span><br><span class="line">        PriorityQueue&lt;Integer&gt; queue=new PriorityQueue&lt;&gt;(new Comparator&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public int compare(Integer o1, Integer o2) &#123;</span><br><span class="line">                return o2-o1;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        for(int temp:nums)&#123;</span><br><span class="line">            queue.add(temp);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;倒序输出：&quot;);</span><br><span class="line">        for(int i=0;i&lt;3;i++)&#123;</span><br><span class="line">            System.out.print(queue.poll()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void positivePrint(int[] nums)&#123;</span><br><span class="line">        PriorityQueue&lt;Integer&gt; queue=new PriorityQueue&lt;&gt;();</span><br><span class="line">        for(int temp:nums)&#123;</span><br><span class="line">            queue.add(temp);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.print(&quot;正序输出：&quot;);</span><br><span class="line">        for(int i=0;i&lt;3;i++)&#123;</span><br><span class="line">            System.out.print(queue.poll()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">正序输出：1 2 3 </span><br><span class="line">倒序输出：9 8 8 </span><br></pre></td></tr></table></figure>
-
-<p>这个在一些排行榜或者输入第N个最大&#x2F;小元素会比较常用。</p>
-<ul>
-<li>LinkedList以及ArrayDeque</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926011817.png"></p>
-<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20190926011948.png"></p>
-<p>从官方解释来看，ArrayDeque是无初始容量的双端队列，LinkedList则是双向链表。而我们还能看到，ArrayDeque作为队列时的效率比LinkedList要高，而在栈的使用场景下，无疑具有尾结点不需判空的LinkedList较高效。</p>
-<p>下面演示ArrayDeque作为队列以及LinkedList作为栈的使用</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">private static void usingAsQueue() &#123;</span><br><span class="line">        Deque&lt;Integer&gt; queue=new ArrayDeque&lt;&gt;();</span><br><span class="line">        System.out.println(&quot;队列为空:&quot;+queue.isEmpty());   //判断队列是否为空</span><br><span class="line">        queue.addLast(12);   //添加元素</span><br><span class="line">        System.out.println(&quot;队列为空:&quot;+queue.isEmpty());   //判断队列是否为空</span><br><span class="line">        System.out.println(queue.peekFirst());   //获取队列首部元素</span><br><span class="line">        System.out.println(queue.pollFirst());   //获取并移除栈顶元素</span><br><span class="line">        System.out.println(&quot;队列为空:&quot;+queue.isEmpty());   //判断队列是否为空</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line">private static void usingAsStack() &#123;</span><br><span class="line">        //作为栈使用</span><br><span class="line">        Deque&lt;Integer&gt; stack=new LinkedList&lt;&gt;();</span><br><span class="line">        System.out.println(&quot;栈为空:&quot;+stack.isEmpty());   //判断栈是否为空</span><br><span class="line">        stack.addFirst(12);</span><br><span class="line">        System.out.println(&quot;栈为空:&quot;+stack.isEmpty());   //判断栈是否为空</span><br><span class="line">        System.out.println(stack.peekFirst());   //获取栈顶元素</span><br><span class="line">        System.out.println(stack.pollFirst());   //获取并移除栈顶元素</span><br><span class="line">        System.out.println(&quot;栈为空:&quot;+stack.isEmpty());   //判断栈是否为空</span><br><span class="line">        System.out.println(&quot;============================================&quot;);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>栈为空:true<br>栈为空:false<br>12<br>12</p>
-<p>栈为空:true</p>
-<p>队列为空:true<br>队列为空:false<br>12<br>12<br>队列为空:true</p>
-</blockquote>
-<blockquote>
-<p>小提示</p>
-<p>在Deque中，获取并移除元素的方法有两个，分别是removeXxx以及peekXxx。</p>
-<p>存在元素时，两者的处理都是一样的。但是当Deque内为空时，removeXxx会直接抛出NoSuchElementException，而peekXxx则会返回null。</p>
-<p>所以无论在实际开发或者算法时，推荐使用peekXxx方法</p>
-</blockquote>
-<p>其实ArrayDeque和LinkedList都可以作为栈以及队列使用，但是从执行效率来说，ArrayDeque作为队列以及LinkedList作为栈使用会是更好的选择。</p>
-<p>另外，我在leetcode看到有人采用Vector下的Stack，这个同步加锁粒度过大(对象级)，另外我觉得算法中没有线程同步的需要吧。</p>
-<ul>
-<li>小结</li>
-</ul>
-<p>PriorityQueue可以作为堆使用，而且可以根据传入的Comparator实现大小的调整，会是一个很好的选择。</p>
-<p>ArrayDeque通常作为栈或队列使用，但是栈的效率不如LinkedList高。</p>
-<p>LinkedList通常作为栈或队列使用，但是队列的效率不如ArrayQueue高。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在java中，Queue被定义成单端队列使用，Deque被定义成双端队列使用。</p>
-<p>而由于双端队列的定义，Deque可以作为栈或者队列使用，而Queue只能作为队列或者依赖于子类的实现作为堆使用。</p>
-<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/java/queue%E4%B8%8Edeque%E7%9A%84%E5%8C%BA%E5%88%AB/">https://cartoonyu.github.io/cartoon-blog/post/java/queue%E4%B8%8Edeque%E7%9A%84%E5%8C%BA%E5%88%AB/</a></strong></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1364,7 +1487,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

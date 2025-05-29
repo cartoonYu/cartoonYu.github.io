@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言偶然发现单元测试运行的比较慢，比较有意思，所以就深究了一下源码，解决了一下。 解决前后对比解决前，单测本地运行 10+ 分钟。 解决后，单测本地运行 1 分钟。 项目概况SpringBoot 版本：2.3.x，junit 版本：5.x 项目结构很简单：接收上游请求查询数据库做业务逻辑。 单测同时使用 @InjectMocks + @Spy&#x2F;@Mock 以及 @SpyBean&amp;#x2F">
+<meta property="og:type" content="article">
+<meta property="og:title" content="解决因错误 Mock 导致单测慢的问题">
+<meta property="og:url" content="https://cartoonyu.github.io/2025/05/30/spring/%E8%A7%A3%E5%86%B3%E5%9B%A0%E9%94%99%E8%AF%AF%20Mock%20%E5%AF%BC%E8%87%B4%E5%8D%95%E6%B5%8B%E6%85%A2%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="cartoon&#39;s blog">
+<meta property="og:description" content="前言偶然发现单元测试运行的比较慢，比较有意思，所以就深究了一下源码，解决了一下。 解决前后对比解决前，单测本地运行 10+ 分钟。 解决后，单测本地运行 1 分钟。 项目概况SpringBoot 版本：2.3.x，junit 版本：5.x 项目结构很简单：接收上游请求查询数据库做业务逻辑。 单测同时使用 @InjectMocks + @Spy&#x2F;@Mock 以及 @SpyBean&amp;#x2F">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/202505171114503.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/202505272303876.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/202505300027369.png">
+<meta property="article:published_time" content="2025-05-29T17:04:26.000Z">
+<meta property="article:modified_time" content="2025-05-29T17:06:24.390Z">
+<meta property="article:author" content="cartoon Yu">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/202505171114503.png">
+
+<link rel="canonical" href="https://cartoonyu.github.io/2025/05/30/spring/%E8%A7%A3%E5%86%B3%E5%9B%A0%E9%94%99%E8%AF%AF%20Mock%20%E5%AF%BC%E8%87%B4%E5%8D%95%E6%B5%8B%E6%85%A2%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>解决因错误 Mock 导致单测慢的问题 | cartoon's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cartoon's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2025/05/30/spring/%E8%A7%A3%E5%86%B3%E5%9B%A0%E9%94%99%E8%AF%AF%20Mock%20%E5%AF%BC%E8%87%B4%E5%8D%95%E6%B5%8B%E6%85%A2%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          解决因错误 Mock 导致单测慢的问题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2025-05-30 01:04:26 / Modified: 01:06:24" itemprop="dateCreated datePublished" datetime="2025-05-30T01:04:26+08:00">2025-05-30</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>偶然发现单元测试运行的比较慢，比较有意思，所以就深究了一下源码，解决了一下。</p>
+<h2 id="解决前后对比"><a href="#解决前后对比" class="headerlink" title="解决前后对比"></a>解决前后对比</h2><p>解决前，单测本地运行 10+ 分钟。</p>
+<p>解决后，单测本地运行 1 分钟。</p>
+<h2 id="项目概况"><a href="#项目概况" class="headerlink" title="项目概况"></a>项目概况</h2><p>SpringBoot 版本：2.3.x，junit 版本：5.x</p>
+<p>项目结构很简单：接收上游请求查询数据库做业务逻辑。</p>
+<p>单测同时使用 @InjectMocks + @Spy&#x2F;@Mock 以及 @SpyBean&#x2F;@MockBean 对下游依赖进行 mock。</p>
+<h2 id="运行时表现"><a href="#运行时表现" class="headerlink" title="运行时表现"></a>运行时表现</h2><h3 id="现象"><a href="#现象" class="headerlink" title="现象"></a>现象</h3><p>单元测试逻辑运行很快，运行前Spring 容器不断被启动，数据库连接 &#x2F; Bean 被重复加载。</p>
+<p>而在普通业务项目中，运行时数据库 &#x2F; Bean 的信息是确定的，重复加载并没有意义。</p>
+<h3 id="重复加载的-demo"><a href="#重复加载的-demo" class="headerlink" title="重复加载的 demo"></a>重复加载的 demo</h3><p>所有单测都继承 BaseTest 基类，使用集成测试的方式运行所有单测。</p>
+<h4 id="业务代码"><a href="#业务代码" class="headerlink" title="业务代码"></a>业务代码</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@Service</span><br><span class="line">public class MockOuterService &#123;</span><br><span class="line">    @Resource</span><br><span class="line">    private MockService mockService;</span><br><span class="line">    </span><br><span class="line">    public String mockString()&#123; return mockService.mockString();&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public interface MockService &#123;</span><br><span class="line">    String mockString();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Service</span><br><span class="line">public class MockServiceImpl implements MockService&#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public String mockString() &#123;return &quot;business return&quot;;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">//测试基类</span><br><span class="line">@TestMethodOrder(MethodOrderer.OrderAnnotation.class)</span><br><span class="line">@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = SpringServiceTestApplication.class)</span><br><span class="line">@ExtendWith(MockitoExtension.class)</span><br><span class="line">public class BaseTest &#123;&#125;</span><br><span class="line"></span><br><span class="line">//集成测试</span><br><span class="line">@RunWith(JUnitPlatform.class)</span><br><span class="line">@SelectPackages(&quot;org.spring.demo.demo&quot;)</span><br><span class="line">public class TestAll extends BaseTest &#123;&#125;</span><br><span class="line"></span><br><span class="line">//业务测试 1</span><br><span class="line">class Test1 extends BaseTest &#123;</span><br><span class="line">    @InjectMocks</span><br><span class="line">    @Resource</span><br><span class="line">    private MockOuterService mockOuterService;</span><br><span class="line"></span><br><span class="line">    @Spy</span><br><span class="line">    private MockService mockService;</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    void test()&#123;</span><br><span class="line">        Mockito.when(mockService.mockString()).thenReturn(&quot;test1 mock&quot;);</span><br><span class="line">        System.out.println(mockOuterService.mockString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//业务测试 2</span><br><span class="line">class Test2 extends BaseTest &#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    @SpyBean</span><br><span class="line">    private MockService mockService;</span><br><span class="line"></span><br><span class="line">    @Resource</span><br><span class="line">    private MockOuterService mockOuterService;</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    void test()&#123;</span><br><span class="line">        Mockito.when(mockService.mockString()).thenReturn(&quot;test2 mock&quot;);</span><br><span class="line">        System.out.println(mockOuterService.mockString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="运行截图"><a href="#运行截图" class="headerlink" title="运行截图"></a>运行截图</h4><p>Spring Boot Banner 出现两次，容器被启动两次</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/202505171114503.png"></p>
+<h2 id="重复加载原因"><a href="#重复加载原因" class="headerlink" title="重复加载原因"></a>重复加载原因</h2><h3 id="常见原因"><a href="#常见原因" class="headerlink" title="常见原因"></a>常见原因</h3><p>Spring 是一个依赖上下文的框架，若上下文缓存失效&#x2F;配置变更则会重新刷新上下文，从而引发容器重启。</p>
+<h3 id="推测原因"><a href="#推测原因" class="headerlink" title="推测原因"></a>推测原因</h3><p>业务项目启动过程中，Spring Boot Banner 出现一次，且所有资源（数据库连接池&#x2F;动态线程池）只初始化一遍。</p>
+<p>而在单测过程中启动多次，有可能是单测改变了 Spring 上下文，或者单测与业务代码结合有问题。</p>
+<h3 id="最小可行性分析"><a href="#最小可行性分析" class="headerlink" title="最小可行性分析"></a>最小可行性分析</h3><p>在对单测删减到最后两个类，仅使用 @MockBean 或者 @InjectMocks&#x2F;@Mock 时，容器启动一次。同时使用，容器启动两次。</p>
+<p>所以原因应该是 SpringBoot 封装的与 Mockito 原生的同时作用情况下，改变了 Spring 的上下文。</p>
+<h3 id="根本原因"><a href="#根本原因" class="headerlink" title="根本原因"></a>根本原因</h3><h4 id="MockBean-x2F-SpyBean-作用原理"><a href="#MockBean-x2F-SpyBean-作用原理" class="headerlink" title="@MockBean&#x2F;@SpyBean 作用原理"></a>@MockBean&#x2F;@SpyBean 作用原理</h4><p>整体流程分为注册与使用两部份。</p>
+<p>注册方面</p>
+<ol>
+<li>Junit 通过 Extension 形式提供单元测试各执行流程的自定义逻辑扩展能力。</li>
+<li>Spring 自定义 Extension 子类 SpringExtension，并通过执行不同 TestExecutionListener 执行 TestContextManager 自定义内容。</li>
+<li>Spring 通过 ContextCustomizerFactory 形式提供动态修改上下文的能力，SpringBoot test 实现子类用于 Mock 相关逻辑实现。</li>
+<li>SpringBoot test自定义 ContextCustomizerFactory 子类 MockitoContextCustomizerFactory，用于 Mock 相关逻辑实现。</li>
+</ol>
+<p>使用方面</p>
+<p>Junit 通过执行不同 Extension 实现自定义逻辑，进而一层层触发到 SpringBoot test 实现的 Mock 相关逻辑。</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/202505272303876.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">group 注册扩展</span><br><span class="line">    group junit5 内部流程</span><br><span class="line">        &quot;MethodBasedTestDescriptor&quot; -&gt; &quot;ExtensionUtils&quot;: 扫描 @Test，调用 Extension 注册</span><br><span class="line">        &quot;ExtensionUtils&quot; -&gt; &quot;MutableExtensionRegistry&quot;: 调用注册</span><br><span class="line">        &quot;MutableExtensionRegistry&quot; -&gt; &quot;SpringExtension&quot;: 注册 Extension</span><br><span class="line">    end</span><br><span class="line">    group Spring Framework 逻辑</span><br><span class="line">        &quot;SpringExtension&quot; -&gt; &quot;TestContextManager&quot;: 新建 TestContextManager</span><br><span class="line">        &quot;TestContextManager&quot; -&gt; &quot;BootstrapUtils&quot;: 触发 @BootstrapWith 扫描逻辑</span><br><span class="line">        &quot;BootstrapUtils&quot; -&gt; &quot;TestContextManager&quot;: 返回启动类</span><br><span class="line">        &quot;TestContextManager&quot; -&gt; &quot;SpringBootTestContextBootstrapper&quot;: 触发启动类 buildTestContext</span><br><span class="line">    end</span><br><span class="line">    group SpringBoot 逻辑</span><br><span class="line">        &quot;SpringBootTestContextBootstrapper&quot; -&gt; &quot;SpringBootTestContextBootstrapper&quot;: 扫描执行 ContextCustomizerFactory 逻辑</span><br><span class="line">        &quot;SpringBootTestContextBootstrapper&quot; -&gt; &quot;MockitoContextCustomizerFactory&quot;: Mockito 自定义上下文类</span><br><span class="line">        &quot;MockitoContextCustomizerFactory&quot; -&gt; &quot;DefinitionsParser&quot;: 注册注解扫描器</span><br><span class="line">        &quot;DefinitionsParser&quot; -&gt; &quot;DefinitionsParser&quot;: 扫描 @SpyBean/@MockBean 添加到 Definition 集合中</span><br><span class="line">        &quot;DefinitionsParser&quot; -&gt; &quot;MockitoContextCustomizerFactory&quot;: 返回 Definition 集合</span><br><span class="line">        &quot;MockitoContextCustomizerFactory&quot; -&gt; &quot;MockitoContextCustomizerFactory&quot;: 以 Definition 集合构建 ContextCustomizer</span><br><span class="line">        &quot;MockitoContextCustomizerFactory&quot; -&gt; &quot;SpringBootTestContextBootstrapper&quot;: 返回 ContextCustomizer</span><br><span class="line">        &quot;SpringBootTestContextBootstrapper&quot; -&gt; &quot;SpringBootTestContextBootstrapper&quot;: 构建 MergedContextConfiguration</span><br><span class="line">        &quot;SpringBootTestContextBootstrapper&quot; -&gt; &quot;SpringBootTestContextBootstrapper&quot;: 构建 TestContext</span><br><span class="line">    end </span><br><span class="line">    &quot;SpringBootTestContextBootstrapper&quot; -&gt; &quot;TestContextManager&quot;: 返回 TestContext</span><br><span class="line">    &quot;TestContextManager&quot; -&gt; &quot;TestContextManager&quot;: 存储上下文</span><br><span class="line">    &quot;TestContextManager&quot; -&gt; &quot;SpringExtension&quot;: 返回 TestContextManager 实例</span><br><span class="line">    &quot;SpringExtension&quot; -&gt; &quot;MutableExtensionRegistry&quot;: 返回 SpringExtension 实例</span><br><span class="line">    &quot;MutableExtensionRegistry&quot; -&gt; &quot;MutableExtensionRegistry&quot;: 存储各 Extension 实例</span><br><span class="line">end</span><br><span class="line">group 使用扩展</span><br><span class="line">    &quot;NodeTestTask&quot; -&gt; &quot;ClassBasedTestDescriptor&quot;: prepare</span><br><span class="line">    &quot;ClassBasedTestDescriptor&quot; -&gt; &quot;SpringExtension&quot;: TestInstancePostProcessor#postProcessTestInstance </span><br><span class="line">    &quot;SpringExtension&quot; -&gt; &quot;TestContextManager&quot;: prepareTestInstance</span><br><span class="line">    &quot;TestContextManager&quot; -&gt; &quot;DependencyInjectionTestExecutionListener&quot;: 传入 SpringBootTestContextBootstrapper 构建的 TestContext 到 prepareTestInstance</span><br><span class="line">    &quot;DependencyInjectionTestExecutionListener&quot; -&gt; &quot;DependencyInjectionTestExcutionListener&quot;: 创建完整 Spring Bean 依赖</span><br><span class="line">end</span><br><span class="line">@enduml</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="InjectMocks-Spy-x2F-Mock-作用原理"><a href="#InjectMocks-Spy-x2F-Mock-作用原理" class="headerlink" title="@InjectMocks +@Spy&#x2F;@Mock 作用原理"></a>@InjectMocks +@Spy&#x2F;@Mock 作用原理</h4><p>整体流程分为注册与使用两部份。</p>
+<p>注册方面，只是将自定义扩展挂载到 Junit 钩子上。</p>
+<p>使用方面，扫描当前单测类相关注释，反射注入新增的 mock 对象。</p>
+<p><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/202505300027369.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">group 注册扩展</span><br><span class="line">    group junit5 内部流程</span><br><span class="line">        &quot;MethodBasedTestDescriptor&quot; -&gt; &quot;ExtensionUtils&quot;: 扫描 @Test，调用 Extension 注册</span><br><span class="line">        &quot;ExtensionUtils&quot; -&gt; &quot;MutableExtensionRegistry&quot;: 调用注册</span><br><span class="line">        &quot;MutableExtensionRegistry&quot; -&gt; &quot;MockitoExtension&quot;: 注册 Extension</span><br><span class="line">    end</span><br><span class="line">end</span><br><span class="line">group 使用扩展</span><br><span class="line">    group junit5 内部流程</span><br><span class="line">        &quot;NodeTestTask&quot; -&gt; &quot;TestMethodTestDescriptor&quot;: execute</span><br><span class="line">        &quot;TestMethodTestDescriptor&quot; -&gt; &quot;TestMethodTestDescriptor&quot;: TestMethodTestDescriptor#invokeBeforeEachCallbacks </span><br><span class="line">        &quot;TestMethodTestDescriptor&quot; -&gt; &quot;MockitoExtension&quot;: beforeEach</span><br><span class="line">    end</span><br><span class="line">    group mockito 内部流程</span><br><span class="line">        &quot;MockitoExtension&quot; -&gt; &quot;DefaultMockitoSessionBuilder&quot;: startMocking</span><br><span class="line">        &quot;DefaultMockitoSessionBuilder&quot; -&gt; &quot;DefaultMockitoSession&quot;: new DefaultMockitoSession Object </span><br><span class="line">        &quot;DefaultMockitoSession&quot; -&gt; &quot;MockitoAnnotations&quot;: openMocks</span><br><span class="line">        &quot;MockitoAnnotations&quot; -&gt; &quot;InjectingAnnotationEngine&quot;: process</span><br><span class="line">        &quot;InjectingAnnotationEngine&quot; -&gt; &quot;MockScanner&quot;: processIndependentAnnotations/injectCloseableMocks 传入当前单测类</span><br><span class="line">        &quot;MockScanner&quot; -&gt; &quot;MockScanner&quot;: 扫描修饰 @Mock/@Spy 变量</span><br><span class="line">        &quot;MockScanner&quot; -&gt; &quot;InjectingAnnotationEngine&quot;: 返回扫描结果</span><br><span class="line">        &quot;InjectingAnnotationEngine&quot; -&gt; &quot;InjectingAnnotationEngine&quot;: 执行 mock 注入</span><br><span class="line">        &quot;InjectingAnnotationEngine&quot; -&gt; &quot;DefaultInjectionEngine&quot;: injectMocksOnFields 反射注入</span><br><span class="line">    end</span><br><span class="line">end</span><br><span class="line">@enduml</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="二者原理区别"><a href="#二者原理区别" class="headerlink" title="二者原理区别"></a>二者原理区别</h3><table>
+<thead>
+<tr>
+<th></th>
+<th align="center">SpringBoot</th>
+<th align="left">Mockito 原生</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>执行时机</td>
+<td align="center">单测类初始化（ClassBasedTestDescriptor）</td>
+<td align="left">单测方法（TestMethodTestDescriptor）</td>
+</tr>
+<tr>
+<td>注入对象</td>
+<td align="center">缓存的 Spring Bean</td>
+<td align="left">调用 Java 原生反射构建</td>
+</tr>
+</tbody></table>
+<h3 id="原因确定"><a href="#原因确定" class="headerlink" title="原因确定"></a>原因确定</h3><p>根据二者的作用原理可知，Mockito 将 Spring Bean 依赖链改变，进而引发 Spring 容器的启动。</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>根据原因可知，解决方案二选一：SpringBoot 的&#x2F;Mockito 原生的。</p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">SpringBoot</th>
+<th align="center">Mockito 原生</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">针对对象</td>
+<td align="center">Spring Bean</td>
+<td align="center">所有的对象</td>
+</tr>
+<tr>
+<td align="center">使用复杂度</td>
+<td align="center">低，不需管理依赖链</td>
+<td align="center">高，需要手动注入被依赖的对象</td>
+</tr>
+<tr>
+<td align="center">作用场景</td>
+<td align="center">需 Spring 环境的集成测试</td>
+<td align="center">纯单元测试</td>
+</tr>
+</tbody></table>
+<h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><p>因为项目中使用 SpringBoot ，并且单元测试大多以集成测试的方式运行，结合使用的复杂度，所以选择了 SpringBoot 提供的方案。</p>
+<h2 id="仍需提升的"><a href="#仍需提升的" class="headerlink" title="仍需提升的"></a>仍需提升的</h2><p>目前 <strong><code>junit-platform.properties</code></strong> 配置的策略为测试类串行&#x2F;测试方法并行，希望改成测试类并行&#x2F;测试方法并行，进一步提升速度。</p>
+<p>但修改后发现大部份单测都报错了，仍需明确原因，推测是各单测自定义 mock 行为互相影响导致。</p>
+<h2 id="结尾"><a href="#结尾" class="headerlink" title="结尾"></a>结尾</h2><p>通过表象猜测原因，通过源码证明猜想。</p>
+<p>在猜测原因时，就在想 SpringBoot 不可能只为了 KPI 而集成 Mockito，肯定有结合 Mockito 做对应的集成，方便后续使用。</p>
+<p>追查源码后印证了猜想，满足。</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/">cartoon的博客</a></strong></p>
+<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/">https://cartoonyu.github.io</a></strong></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>cartoon Yu
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://cartoonyu.github.io/2025/05/30/spring/%E8%A7%A3%E5%86%B3%E5%9B%A0%E9%94%99%E8%AF%AF%20Mock%20%E5%AF%BC%E8%87%B4%E5%8D%95%E6%B5%8B%E6%85%A2%E7%9A%84%E9%97%AE%E9%A2%98/" title="解决因错误 Mock 导致单测慢的问题">https://cartoonyu.github.io/2025/05/30/spring/解决因错误 Mock 导致单测慢的问题/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/02/05/JAVA/synchronized,%20volatile%20%E5%9C%A8%20DCL%20%E7%9A%84%E4%BD%9C%E7%94%A8/" rel="prev" title="synchronized, volatile 在 DCL 的作用">
+      <i class="fa fa-chevron-left"></i> synchronized, volatile 在 DCL 的作用
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E5%89%8D%E5%90%8E%E5%AF%B9%E6%AF%94"><span class="nav-number">2.</span> <span class="nav-text">解决前后对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E6%A6%82%E5%86%B5"><span class="nav-number">3.</span> <span class="nav-text">项目概况</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E8%A1%A8%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">运行时表现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%B0%E8%B1%A1"><span class="nav-number">4.1.</span> <span class="nav-text">现象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E5%A4%8D%E5%8A%A0%E8%BD%BD%E7%9A%84-demo"><span class="nav-number">4.2.</span> <span class="nav-text">重复加载的 demo</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%9A%E5%8A%A1%E4%BB%A3%E7%A0%81"><span class="nav-number">4.2.1.</span> <span class="nav-text">业务代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95"><span class="nav-number">4.2.2.</span> <span class="nav-text">单元测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%88%AA%E5%9B%BE"><span class="nav-number">4.2.3.</span> <span class="nav-text">运行截图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E5%A4%8D%E5%8A%A0%E8%BD%BD%E5%8E%9F%E5%9B%A0"><span class="nav-number">5.</span> <span class="nav-text">重复加载原因</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E5%8E%9F%E5%9B%A0"><span class="nav-number">5.1.</span> <span class="nav-text">常见原因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E6%B5%8B%E5%8E%9F%E5%9B%A0"><span class="nav-number">5.2.</span> <span class="nav-text">推测原因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%88%86%E6%9E%90"><span class="nav-number">5.3.</span> <span class="nav-text">最小可行性分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B9%E6%9C%AC%E5%8E%9F%E5%9B%A0"><span class="nav-number">5.4.</span> <span class="nav-text">根本原因</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MockBean-x2F-SpyBean-%E4%BD%9C%E7%94%A8%E5%8E%9F%E7%90%86"><span class="nav-number">5.4.1.</span> <span class="nav-text">@MockBean&#x2F;@SpyBean 作用原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InjectMocks-Spy-x2F-Mock-%E4%BD%9C%E7%94%A8%E5%8E%9F%E7%90%86"><span class="nav-number">5.4.2.</span> <span class="nav-text">@InjectMocks +@Spy&#x2F;@Mock 作用原理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E8%80%85%E5%8E%9F%E7%90%86%E5%8C%BA%E5%88%AB"><span class="nav-number">5.5.</span> <span class="nav-text">二者原理区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0%E7%A1%AE%E5%AE%9A"><span class="nav-number">5.6.</span> <span class="nav-text">原因确定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">6.</span> <span class="nav-text">解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3"><span class="nav-number">7.</span> <span class="nav-text">解决</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8D%E9%9C%80%E6%8F%90%E5%8D%87%E7%9A%84"><span class="nav-number">8.</span> <span class="nav-text">仍需提升的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E5%B0%BE"><span class="nav-number">9.</span> <span class="nav-text">结尾</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartoon Yu</p>
+  <div class="site-description" itemprop="description">do what I like, love who I love</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/cartoonYu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;cartoonYu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:cartoonyu3@gmail.com" title="E-Mail → mailto:cartoonyu3@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/cartoon_?spm=1010.2135.3001.5421" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;cartoon_?spm&#x3D;1010.2135.3001.5421" rel="noopener" target="_blank"><i class=" fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://segmentfault.com/u/cartoon_5cce2e0fb8fae" title="Segmentfault → https:&#x2F;&#x2F;segmentfault.com&#x2F;u&#x2F;cartoon_5cce2e0fb8fae" rel="noopener" target="_blank"><i class=" fa-fw"></i>Segmentfault</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://github.com/theme-next/hexo-theme-next" title="https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-theme-next" rel="noopener" target="_blank">Link1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.csdn.net/Fosu_Chenai/article/details/111155327" title="https:&#x2F;&#x2F;blog.csdn.net&#x2F;Fosu_Chenai&#x2F;article&#x2F;details&#x2F;111155327" rel="noopener" target="_blank">Link2</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://zhuanlan.zhihu.com/p/351031589" title="https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;351031589" rel="noopener" target="_blank">Link3</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">cartoon Yu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '683d76edf9795b6e1987',
+      clientSecret: '1b529cd1ec23ea741ad8837b5df5ae7be16a7ecd',
+      repo        : 'cartoonYu.github.io',
+      owner       : 'cartoonYu',
+      admin       : ['cartoonYu'],
+      id          : '6057dde8c56d40a9aefb1d50a6c39e2c',
+        language: 'en',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
