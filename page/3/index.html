@@ -152,6 +152,103 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%89%8D%E7%AB%AF%E7%89%88%E6%9C%AC)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%89%8D%E7%AB%AF%E7%89%88%E6%9C%AC)/" class="post-title-link" itemprop="url">JSON工具类的构建(前端版本)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-10-05 09:03:45" itemprop="dateCreated datePublished" datetime="2019-10-05T09:03:45+00:00">2019-10-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在前后端交互的选择上，之前一直采用的是模板引擎(因为我只负责后端)。<br>而这次的一个算是作业吧，前后端都是我，所以就研究了一下JSON交互在java web的应用(主要是前端)。</p>
+<h3 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h3><p>因为我是先写后端版本的，所以优缺点部分请跳转至<a href="https://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC/">JSON工具类的构建(后端版本)</a>查看。</p>
+<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>因为我对js也是几天速成系列，所以框架型的jq以及ajax也是处于概念上的理解以及皮毛型的应用。<br>我所认识的主流的前端处理的ajax，所以就选用了ajax进行发送&#x2F;接收解析json的处理。</p>
+<h3 id="需求拆分"><a href="#需求拆分" class="headerlink" title="需求拆分"></a>需求拆分</h3><p>因为没有打算深入学习前端，所以对需求的划分以及功能实现只限于满足这次的作业。<br>而我定义的功能&#x2F;需求主要有两个</p>
+<ul>
+<li>外部函数只需进行传入接口url以及数据，接收并初步解析结果</li>
+<li>必须能进行get&#x2F;post请求的发送以及接收</li>
+<li>只需要发送单实体数据</li>
+</ul>
+<h3 id="格式设计"><a href="#格式设计" class="headerlink" title="格式设计"></a>格式设计</h3><p>因为是请求型报文，所以只需要形成普通的json格式</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;name&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;password&quot;</span><span class="punctuation">:</span><span class="string">&quot;password&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;account&quot;</span><span class="punctuation">:</span><span class="string">&quot;account&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="代码设计"><a href="#代码设计" class="headerlink" title="代码设计"></a>代码设计</h3><p>因为我希望传入接口url以及数据既能完成数据的发送与接收，而个人觉得ajax的请求响应参数中不同的只是url以及发送&#x2F;接收数据不同了（限本次的需要），所以就在内部构建了一个通用的ajax的函数。</p>
+<h3 id="实际代码"><a href="#实际代码" class="headerlink" title="实际代码"></a>实际代码</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">transfer</span>(<span class="params">url, data</span>)&#123;</span><br><span class="line">    <span class="keyword">var</span> result=<span class="keyword">new</span> <span class="title class_">Array</span>();</span><br><span class="line">    $.<span class="title function_">ajax</span>(&#123;</span><br><span class="line">        <span class="attr">type</span>:<span class="string">&quot;POST&quot;</span>,</span><br><span class="line">        <span class="attr">url</span>:url,</span><br><span class="line">        <span class="attr">dataType</span>:<span class="string">&quot;json&quot;</span>,</span><br><span class="line">        <span class="attr">async</span>:<span class="literal">false</span>,</span><br><span class="line">        <span class="attr">contentType</span>:<span class="string">&quot;application/json;charset=utf-8&quot;</span>,</span><br><span class="line">        <span class="attr">data</span>:<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(data),</span><br><span class="line">        <span class="attr">success</span>:<span class="keyword">function</span> (<span class="params">dataReturn</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> temp=<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(dataReturn);</span><br><span class="line">            <span class="keyword">var</span> dataObj = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(temp);</span><br><span class="line">            result[<span class="number">0</span>]=dataObj.<span class="property">status</span>;</span><br><span class="line">            result[<span class="number">1</span>]=dataObj.<span class="property">object</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="代码思路"><a href="#代码思路" class="headerlink" title="代码思路"></a>代码思路</h3><ol>
+<li>外部函数传入url以及数据data，data为对象类型的数据</li>
+<li>构建ajax请求发送数据</li>
+<li>因返回的json报文主要有两项：状态status以及数据object，所以采用数组型的返回结果</li>
+<li>通过<a target="_blank" rel="noopener" href="https://www.runoob.com/json/json-stringify.html">JSON.stringify</a>以及<a target="_blank" rel="noopener" href="https://www.runoob.com/json/json-parse.html">JSON.parse</a>将返回的json字符串转换成对象</li>
+<li>根据键值拆分返回结果到3中定义的数组返回</li>
+<li>调用函数通过result[0]判断获取操作结果，result[1]获取操作的详细数据</li>
+</ol>
+<h3 id="结果展示"><a href="#结果展示" class="headerlink" title="结果展示"></a>结果展示</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">clickLogin</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> userName=$(<span class="string">&quot;#userName&quot;</span>).<span class="title function_">val</span>();</span><br><span class="line">    <span class="keyword">var</span> password=$(<span class="string">&quot;#password&quot;</span>).<span class="title function_">val</span>();</span><br><span class="line">    <span class="keyword">var</span> data=&#123;&#125;;</span><br><span class="line">    data[<span class="string">&#x27;number&#x27;</span>]=userName;</span><br><span class="line">    data[<span class="string">&#x27;password&#x27;</span>]=password;</span><br><span class="line">    <span class="keyword">var</span> result=<span class="title function_">transfer</span>(<span class="string">&quot;/text_project/login&quot;</span>,data);</span><br><span class="line">    <span class="keyword">if</span>(result[<span class="number">0</span>]==<span class="string">&#x27;200&#x27;</span>)&#123;</span><br><span class="line">        <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span>=<span class="string">&quot;/text_project/main&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="不足之处"><a href="#不足之处" class="headerlink" title="不足之处"></a>不足之处</h3><ol>
+<li>get请求的需求没有解决，曾经花了7个小时去研究解决，但是因为对js以及ajax不熟悉，知道问题所在，但是没有解决</li>
+<li>不同结果的处理没有过多的处理</li>
+<li>原本想构建一个统一的网络访问函数，但是由于get请求的未解决这个想法失败了</li>
+</ol>
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>因为这次时间赶，所以只是几天速成系列，只追求能用。<br>但是通过这次的速成，也学习到了怎么去快速掌握或满足自身需要的一些方法，也算是接触到不同方面，能在以后的JAVA后端的学习中有所对比借鉴吧。</p>
+<h3 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h3><p>这是我在前台发送&#x2F;接收解析json的一点经验，我另外写了一篇文章：<a href="https://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC/">JSON工具类的构建(后端版本)</a>，配合使用会很香哦~</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/json/json%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA%E5%89%8D%E7%AB%AF%E7%89%88%E6%9C%AC/">https://cartoonyu.github.io/cartoon-blog/post/json/json工具类的构建前端版本/</a></strong></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/05/JSON/JSON%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA(%E5%90%8E%E7%AB%AF%E7%89%88%E6%9C%AC)/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +280,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -312,7 +409,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -437,7 +534,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -536,7 +633,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -640,7 +737,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -756,7 +853,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -886,7 +983,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -1143,7 +1240,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -1398,7 +1495,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -1538,74 +1635,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/git/gitnore%E6%96%87%E4%BB%B6%E4%BF%AE%E6%94%B9%E7%94%9F%E6%95%88%E6%96%B9%E6%B3%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/05/08/git/gitnore%E6%96%87%E4%BB%B6%E4%BF%AE%E6%94%B9%E7%94%9F%E6%95%88%E6%96%B9%E6%B3%95/" class="post-title-link" itemprop="url">gitnore文件修改生效方法</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-05-08 14:00:12" itemprop="dateCreated datePublished" datetime="2019-05-08T14:00:12+00:00">2019-05-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
-<p>当修改gitnore文件后，常常出现文件不生效的情况，是因为之前的修改已经提交到暂存区上了。<br>解决方法</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git add .     //防止已有修改还没到暂存区的情况</span><br><span class="line">git rm -r --cached .  //清除暂存区记录</span><br><span class="line">git add . //提交修改记录到暂存区中</span><br></pre></td></tr></table></figure>
-<p>执行到第三步即能使gitnore文件生效，后续操作会按照gitnore规则执行</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1675,7 +1704,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

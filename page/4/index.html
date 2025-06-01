@@ -152,6 +152,74 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/git/gitnore%E6%96%87%E4%BB%B6%E4%BF%AE%E6%94%B9%E7%94%9F%E6%95%88%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/05/08/git/gitnore%E6%96%87%E4%BB%B6%E4%BF%AE%E6%94%B9%E7%94%9F%E6%95%88%E6%96%B9%E6%B3%95/" class="post-title-link" itemprop="url">gitnore文件修改生效方法</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-05-08 14:00:12" itemprop="dateCreated datePublished" datetime="2019-05-08T14:00:12+00:00">2019-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
+<p>当修改gitnore文件后，常常出现文件不生效的情况，是因为之前的修改已经提交到暂存区上了。<br>解决方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git add .     //防止已有修改还没到暂存区的情况</span><br><span class="line">git rm -r --cached .  //清除暂存区记录</span><br><span class="line">git add . //提交修改记录到暂存区中</span><br></pre></td></tr></table></figure>
+<p>执行到第三步即能使gitnore文件生效，后续操作会按照gitnore规则执行</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/Assorted/%E4%BD%8D%E8%BF%90%E7%AE%97%E7%AC%A6%E5%92%8C%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E7%AC%A6%E7%9A%84%E5%8C%BA%E5%88%AB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +251,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -251,7 +319,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -384,7 +452,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -518,7 +586,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -635,7 +703,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -715,7 +783,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -814,7 +882,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -885,7 +953,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -952,7 +1020,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
+                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
               </span>
 
           
@@ -979,121 +1047,6 @@
 <li>Run–Run Configurations–Apache Tomcat–Tomcat v9.0 Server–Arguments–VM arguments，将参数最后的-Djava.endorsed.dirs&#x3D;”D:\java\tomcat\apache-tomcat-9.0.10\endorsed删除掉，Apply然后再Start Tomcat就好了。</li>
 </ol>
 <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;第二次的解决方法部分来自<a target="_blank" rel="noopener" href="https://bbs.csdn.net/topics/392277991">https://bbs.csdn.net/topics/392277991</a>中的12楼的层主Ice2017，谢谢了。<br/><br>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;为什么说部分呢，因为我是在更新WTP之后再修改设置的（因为练习的项目涉及到JSTL库，所以之前更新了），Ice是修改设置之后再更新WTP的。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/JAVA/JAVA%E9%9B%86%E5%90%88--Iterator%E6%8E%A5%E5%8F%A3/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/05/08/JAVA/JAVA%E9%9B%86%E5%90%88--Iterator%E6%8E%A5%E5%8F%A3/" class="post-title-link" itemprop="url">JAVA集合--Iterator接口</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-05-08 12:46:44" itemprop="dateCreated datePublished" datetime="2019-05-08T12:46:44+00:00">2019-05-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-29 17:11:31" itemprop="dateModified" datetime="2025-05-29T17:11:31+00:00">2025-05-29</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;上一篇文章中我在集合元素的遍历中已经有涉及到Iterator的普遍使用方法，但是并没有对此进行解释。<br>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;其实，Iterator来源于java.util包，也是属于Java集合框架中的一份子，不同于Collection（存放单一数据）和Map（存放具有映射关系的数据），Iterator主要用于集合元素的迭代输出，所以它的对象又被称为迭代器。</p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Iterator的方法包括：</p>
-<table>
-<thead>
-<tr>
-<th>成员方法</th>
-<th align="right">作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>boolean hasNext();</td>
-<td align="right">判断迭代器是否还有未遍历的元素</td>
-</tr>
-<tr>
-<td>E next();</td>
-<td align="right">返回迭代器中下一未遍历元素</td>
-</tr>
-<tr>
-<td>void remove();</td>
-<td align="right">移除迭代器上一遍历的元素</td>
-</tr>
-<tr>
-<td>void forEachRemaining(Consumer action)</td>
-<td align="right">以特定的Lambda表达式遍历元素</td>
-</tr>
-</tbody></table>
-<p><strong>注：void forEachRemaining(Consumer action)为Java 8新增的默认方法。</strong></p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;下面是Iterator的实例化以及各方法的使用方法</p>
-<ul>
-<li><p>Iterator的实例化</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Iterator it=c5.iterator();</span><br></pre></td></tr></table></figure>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Iterator本身不存在容纳对象的能力，它的对象必须依附于Collection对象。<br>同时，一个Iterator对象只能使用一次，复用会导致<strong>java.util.ConcurrentModificationException</strong>。我还没搞懂为什么会这样，应该是关于设计模式的内容。</p>
-</li>
-<li><p>boolean hasNext();以及next();</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">while(it.hasNext()) &#123;</span><br><span class="line">	System.out.println(it.next());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输出:5</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>void remove();</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">while(it.hasNext()) &#123;</span><br><span class="line">	System.out.println(it.next());</span><br><span class="line">	it.remove();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输出：5</span><br></pre></td></tr></table></figure>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;remove方法要在next方法之后调用，次序调换会导致<strong>java.lang.IllegalStateException</strong>。</p>
-</li>
-<li><p>void forEachRemaining(Consumer action);</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Iterator it=c5.iterator();</span><br><span class="line">it.forEachRemaining(obj-&gt;System.out.println(obj));</span><br></pre></td></tr></table></figure>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输出：5</span><br></pre></td></tr></table></figure>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;通过特定的Lambda表达式格式输出元素。</p>
-</li>
-</ul>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; Iterator接口就写到这里了。通常我都是用它作为测试Collection对象的，好处就是不用通过循环遍历，代码量会少一点。但是正式使用我还是会使用循环遍历Collection对象，虽则代码量多，但是可以省掉一个对象的内存空间，能省一点是一点，哈哈！</p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果你还想了解关于java集合的内容，欢迎点击<a href="%5Bhttps://cartoonyu.github.io/cartoon-blog/post/java/java%E9%9B%86%E5%90%88%E6%A6%82%E8%BF%B0/%5D(https://cartoonyu.github.io/cartoon-blog/post/java/java%E9%9B%86%E5%90%88%E6%A6%82%E8%BF%B0/)">JAVA集合概述</a></p>
 
       
     </div>
@@ -1178,7 +1131,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
