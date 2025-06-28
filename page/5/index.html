@@ -152,6 +152,83 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/Assorted/eclipse%E7%9A%84%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/05/08/Assorted/eclipse%E7%9A%84%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7/" class="post-title-link" itemprop="url">解决eclipse oxygen+java 10+Tomcat的Could not create the Java virtual machine问题</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-05-08 12:54:58" itemprop="dateCreated datePublished" datetime="2019-05-08T12:54:58+00:00">2019-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog">https://cartoonyu.github.io/cartoon-blog</a></strong></p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;这个坑我遇到了两次了，所以就写下来以防自己再遇到。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;第一次没看conscole，所以就不知道具体原因是什么。</p>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;第二次留意了conscole</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Djava.endorsed.dirs=D:\Tomcat 9.0\endorsed is not supported. </span><br><span class="line"></span><br><span class="line">Endorsed standards and standalone APIsin modular form will be supported via the concept of upgradeable modules.</span><br></pre></td></tr></table></figure>
+
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;第一次整整弄了一个下午，最后通过降级jdk版本到1.8解决掉。<br>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;第二次就在想每一次新建工作空间都像第一次这样过于麻烦。因为命令行启动tomcat是没有问题的，所以猜测应该是eclipse的问题。解决方法：</p>
+<ol>
+<li>eclipse–Window–Preferences–Install&#x2F;update–Available Software Sites，将The Eclipse Web Tools Platform的location后缀的neon改成oxygen。</li>
+<li>help–check for update，等待重启。</li>
+<li>Run–Run Configurations–Apache Tomcat–Tomcat v9.0 Server–Arguments–VM arguments，将参数最后的-Djava.endorsed.dirs&#x3D;”D:\java\tomcat\apache-tomcat-9.0.10\endorsed删除掉，Apply然后再Start Tomcat就好了。</li>
+</ol>
+<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;第二次的解决方法部分来自<a target="_blank" rel="noopener" href="https://bbs.csdn.net/topics/392277991">https://bbs.csdn.net/topics/392277991</a>中的12楼的层主Ice2017，谢谢了。<br/><br>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;为什么说部分呢，因为我是在更新WTP之后再修改设置的（因为练习的项目涉及到JSTL库，所以之前更新了），Ice是修改设置之后再更新WTP的。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/05/08/JAVA/JAVA%E9%9B%86%E5%90%88--Iterator%E6%8E%A5%E5%8F%A3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +260,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -298,7 +375,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -518,7 +595,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -600,7 +677,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -681,7 +758,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -802,7 +879,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -916,12 +993,12 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>

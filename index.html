@@ -152,6 +152,123 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2025/06/28/JAVA/%E5%AF%B9%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E6%B3%95%E7%9A%84%E7%90%86%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/06/28/JAVA/%E5%AF%B9%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E6%B3%95%E7%9A%84%E7%90%86%E8%A7%A3/" class="post-title-link" itemprop="url">对三色标记法的理解</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2025-06-28 10:46:00 / Modified: 02:50:14" itemprop="dateCreated datePublished" datetime="2025-06-28T10:46:00+00:00">2025-06-28</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在回看 JVM 的相关概念，看到了三色标记法的使用，所以就记录一下。</p>
+<h2 id="三色标记法是什么"><a href="#三色标记法是什么" class="headerlink" title="三色标记法是什么"></a>三色标记法是什么</h2><p>在可达性分析的过程中，对象有且只有三种状态：完全没被扫描，对象被扫描但子对象还没完全被扫描，对象与其子对象都被扫描了。</p>
+<p>而这三种状态即为三种颜色</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">白色：完全没被扫描。对象与子对象确定被回收。</span><br><span class="line">灰色：对象被扫描但子对象还没完全被扫描。根对象确定存活，子对象可能被回收。</span><br><span class="line">黑色：对象与其子对象都被扫描了。对象与子对象确定存活。</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="出现的原因"><a href="#出现的原因" class="headerlink" title="出现的原因"></a>出现的原因</h2><p>三色标记法是对堆上的对象进行归类，简化可达性分析中的重复扫描的工作量。</p>
+<h2 id="作用阶段"><a href="#作用阶段" class="headerlink" title="作用阶段"></a>作用阶段</h2><p>作用阶段包括初始标记与并发标记。</p>
+<p>初始标记主要是确定 GC Root ，并把根节点标为灰色。初始标记需要暂停用户线程。</p>
+<p>并发标记主要是根据 GC Root 往下扫描子对象，将子对象从白色扭转为黑色&#x2F;灰色。并发标记过程标记线程与用户线程并行。</p>
+<h2 id="可能出现的问题"><a href="#可能出现的问题" class="headerlink" title="可能出现的问题"></a>可能出现的问题</h2><p>在进行回收前，对象有且只会存在两个颜色：黑色以及白色。<br>但由于扫描所有对象耗时久，所以扫描只能与用户线程并发，并发过程中会发生对象图关系的改变，会出现两个问题</p>
+<ol>
+<li>黑色对象变成了白色对象，最终应该被回收但未被回收，俗称浮动垃圾，下一次回收也行。</li>
+<li>白色对象变成了黑色对象，最终不应被回收却被回收了，会导致程序异常。</li>
+</ol>
+<h2 id="问题的原因"><a href="#问题的原因" class="headerlink" title="问题的原因"></a>问题的原因</h2><p>白色对象变成黑色对象的原因，需要同时满足下面两个：</p>
+<ol>
+<li>黑色根对象增加了对上述白色对象的引用。</li>
+<li>灰色根对象删除对白色子对象引用。</li>
+</ol>
+<p>最后的结果是：白色对象实际上是黑色对象，但回收程序仍认为是白色对象。</p>
+<h2 id="问题的解决"><a href="#问题的解决" class="headerlink" title="问题的解决"></a>问题的解决</h2><p>针对上述的变动，解决办法有两个：</p>
+<ol>
+<li>增量更新：记录黑色根对象对白色对象的新增调用，并且以黑色根对象为根重新扫描这部分的引用。</li>
+<li>原始快照：记录灰色根对象删除对白色子对象的删除，并且重新扫描整个对象图。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="left">增量更新</th>
+<th align="left">原始快照</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">优点</td>
+<td align="left">扫描范围小，最终标记过程停顿时间短</td>
+<td align="left">不会产生浮动垃圾，根据对象图重新扫描</td>
+</tr>
+<tr>
+<td align="center">缺点</td>
+<td align="left">产生新的浮动垃圾。仅记录新增引用，未记录删除引用</td>
+<td align="left">最终标记时间长。扫描了整个对象图</td>
+</tr>
+<tr>
+<td align="center">适用范围</td>
+<td align="left">老年代。老年代对象引用变化少，上述缺点出现概率低</td>
+<td align="left">基于 Region 实现的垃圾收集器</td>
+</tr>
+</tbody></table>
+<h2 id="最后的叨叨"><a href="#最后的叨叨" class="headerlink" title="最后的叨叨"></a>最后的叨叨</h2><blockquote>
+<p> 为什么会有并发标记与最终标记两阶段</p>
+</blockquote>
+<p>我觉得主要是为了尽可能缩短 STW 的时间。</p>
+<p>两阶段更像是二八原则的具象化。80%对象关系不会变化，20%对象关系会变化（实际上更少）。</p>
+<p>针对不会变化的部分，并发标记能减少业务感知的时间。针对变化的部分，则记录下来再 STW 确定最终引用关系。</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/">cartoon的博客</a></strong></p>
+<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/">https://cartoonyu.github.io</a></strong></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2025/06/01/JAVA/%E5%B9%B6%E5%8F%91%E6%9B%B4%E6%96%B0%E5%8F%98%E9%87%8F%E7%9A%84%E9%97%AE%E9%A2%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -175,10 +292,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2025-06-01 16:39:09 / Modified: 08:43:47" itemprop="dateCreated datePublished" datetime="2025-06-01T16:39:09+00:00">2025-06-01</time>
+              <time title="Created: 2025-06-01 16:39:09" itemprop="dateCreated datePublished" datetime="2025-06-01T16:39:09+00:00">2025-06-01</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+              </span>
 
           
 
@@ -363,7 +486,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -529,7 +652,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -651,7 +774,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -813,7 +936,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -947,7 +1070,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -1189,7 +1312,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -1315,7 +1438,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -1479,7 +1602,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -1654,113 +1777,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2022/05/18/Ubuntu/Linux%E6%96%B0%E5%A2%9Eswap%E5%88%86%E5%8C%BA/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/18/Ubuntu/Linux%E6%96%B0%E5%A2%9Eswap%E5%88%86%E5%8C%BA/" class="post-title-link" itemprop="url">Linux新增swap分区</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2022-05-18 22:11:40" itemprop="dateCreated datePublished" datetime="2022-05-18T22:11:40+00:00">2022-05-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>近段时间在服务器搭建中间件，发现物理内存不足，因为对性能要求不高，所以就求助 swap 了。</p>
-<p>下面是 ubuntu 的 swap 构建的步骤</p>
-<ol>
-<li>新建 swap 文件（&#x2F;root&#x2F;swapfile）</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dd if=/dev/zero of=/root/swapfile bs=1M count=8192</span><br><span class="line"></span><br><span class="line">swap 文件位置：/root/swapfile</span><br><span class="line">swap 文件大小：bs（文件块）* count（块数）</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="2">
-<li>格式化 swap</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkswap /root/swapfile</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="3">
-<li>启动 swap</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">swapon /root/swapfile</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="4">
-<li><p>开机自启动（非必要）</p>
-<ol>
-<li>打开  &#x2F;etc&#x2F;fstab</li>
-<li>在文件末尾追加以下内容</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/root/swapfile swap swap defaults 0 0</span><br></pre></td></tr></table></figure>
-
-
-</li>
-<li><p>关闭 swap （可在不需要）</p>
-</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">swapoff -a</span><br></pre></td></tr></table></figure>
-
-
-
-<p>以上就是 Linux 下新建 swap 缓存的步骤。</p>
-<p><strong>本文首发于<a href="https://cartoonyu.github.io/">cartoon的博客</a></strong></p>
-<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/">https://cartoonyu.github.io</a></strong></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1830,12 +1846,12 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>

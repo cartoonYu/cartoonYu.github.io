@@ -20,21 +20,21 @@
     var CONFIG = {"hostname":"cartoonyu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":"default","style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="前言近段时间在学dubbo，dubbo-admin死活装不上，无论是本地还是docker，所以把目光投向了其他配置中心，我选定的是阿里新开源的nacos。 正文 拉取镜像到本地docker 1docker pull nacos&#x2F;nacos-server  新建nacos容器 1docker run --env MODE&#x3D;standalone --name nacos -d -p 8848:8848">
+  <meta name="description" content="前言最近在回看 JVM 的相关概念，看到了三色标记法的使用，所以就记录一下。 三色标记法是什么在可达性分析的过程中，对象有且只有三种状态：完全没被扫描，对象被扫描但子对象还没完全被扫描，对象与其子对象都被扫描了。 而这三种状态即为三种颜色 123白色：完全没被扫描。对象与子对象确定被回收。灰色：对象被扫描但子对象还没完全被扫描。根对象确定存活，子对象可能被回收。黑色：对象与其子对象都被扫描了。对象">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Docker下配置nacos">
-<meta property="og:url" content="https://cartoonyu.github.io/2019/10/10/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/index.html">
+<meta property="og:title" content="对三色标记法的理解">
+<meta property="og:url" content="https://cartoonyu.github.io/2025/06/28/JAVA/%E5%AF%B9%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E6%B3%95%E7%9A%84%E7%90%86%E8%A7%A3/index.html">
 <meta property="og:site_name" content="cartoon&#39;s blog">
-<meta property="og:description" content="前言近段时间在学dubbo，dubbo-admin死活装不上，无论是本地还是docker，所以把目光投向了其他配置中心，我选定的是阿里新开源的nacos。 正文 拉取镜像到本地docker 1docker pull nacos&#x2F;nacos-server  新建nacos容器 1docker run --env MODE&#x3D;standalone --name nacos -d -p 8848:8848">
+<meta property="og:description" content="前言最近在回看 JVM 的相关概念，看到了三色标记法的使用，所以就记录一下。 三色标记法是什么在可达性分析的过程中，对象有且只有三种状态：完全没被扫描，对象被扫描但子对象还没完全被扫描，对象与其子对象都被扫描了。 而这三种状态即为三种颜色 123白色：完全没被扫描。对象与子对象确定被回收。灰色：对象被扫描但子对象还没完全被扫描。根对象确定存活，子对象可能被回收。黑色：对象与其子对象都被扫描了。对象">
 <meta property="og:locale">
-<meta property="og:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20191010204357.png">
-<meta property="article:published_time" content="2019-10-10T12:18:23.000Z">
-<meta property="article:modified_time" content="2025-06-28T02:50:14.031Z">
+<meta property="article:published_time" content="2025-06-28T10:46:00.000Z">
+<meta property="article:modified_time" content="2025-06-28T02:50:14.030Z">
 <meta property="article:author" content="cartoon Yu">
+<meta property="article:tag" content="JAVA">
+<meta property="article:tag" content="JVM">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20191010204357.png">
 
-<link rel="canonical" href="https://cartoonyu.github.io/2019/10/10/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/">
+<link rel="canonical" href="https://cartoonyu.github.io/2025/06/28/JAVA/%E5%AF%B9%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E6%B3%95%E7%9A%84%E7%90%86%E8%A7%A3/">
 
 
 <script id="page-configurations">
@@ -47,7 +47,7 @@
   };
 </script>
 
-  <title>Docker下配置nacos | cartoon's blog</title>
+  <title>对三色标记法的理解 | cartoon's blog</title>
   
 
 
@@ -157,7 +157,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/10/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2025/06/28/JAVA/%E5%AF%B9%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E6%B3%95%E7%9A%84%E7%90%86%E8%A7%A3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -170,7 +170,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Docker下配置nacos
+          对三色标记法的理解
         </h1>
 
         <div class="post-meta">
@@ -179,16 +179,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2019-10-10 12:18:23" itemprop="dateCreated datePublished" datetime="2019-10-10T12:18:23+00:00">2019-10-10</time>
+              <time title="Created: 2025-06-28 10:46:00 / Modified: 02:50:14" itemprop="dateCreated datePublished" datetime="2025-06-28T10:46:00+00:00">2025-06-28</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
-              </span>
 
           
 
@@ -201,36 +195,65 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>近段时间在学dubbo，dubbo-admin死活装不上，无论是本地还是docker，所以把目光投向了其他配置中心，我选定的是阿里新开源的nacos。</p>
-<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><ul>
-<li><p>拉取镜像到本地docker</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull nacos/nacos-server</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>新建nacos容器</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --env MODE=standalone --name nacos -d -p 8848:8848 nacos/nacos-server</span><br></pre></td></tr></table></figure>
-<p>其中env参数是指定容器所处环境，这里是指建立单机版的nacos。</p>
-</li>
-<li><p>新建数据库用于节点以及数据的保存</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create database nacos_config;</span><br></pre></td></tr></table></figure>
-<p>其中数据库名自定义</p>
-</li>
-<li><p>导入脚本<br>可以到<a target="_blank" rel="noopener" href="https://github.com/alibaba/nacos/blob/master/config/src/main/resources/META-INF/nacos-db.sql">官网</a>复制或者用<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1ZGnzp4DgGNCGCtyGst6I3g">我上传的脚本</a>，提取码为jm6z </p>
-</li>
-<li><p>修改nacos在conf的配置文件application.properties<br><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20191010204357.png"></p>
-</li>
-</ul>
-<p>主要修改的地方有：</p>
-<blockquote>
-<p>db.url.0<br>db.url.1<br>db.user<br>db.password</p>
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在回看 JVM 的相关概念，看到了三色标记法的使用，所以就记录一下。</p>
+<h2 id="三色标记法是什么"><a href="#三色标记法是什么" class="headerlink" title="三色标记法是什么"></a>三色标记法是什么</h2><p>在可达性分析的过程中，对象有且只有三种状态：完全没被扫描，对象被扫描但子对象还没完全被扫描，对象与其子对象都被扫描了。</p>
+<p>而这三种状态即为三种颜色</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">白色：完全没被扫描。对象与子对象确定被回收。</span><br><span class="line">灰色：对象被扫描但子对象还没完全被扫描。根对象确定存活，子对象可能被回收。</span><br><span class="line">黑色：对象与其子对象都被扫描了。对象与子对象确定存活。</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="出现的原因"><a href="#出现的原因" class="headerlink" title="出现的原因"></a>出现的原因</h2><p>三色标记法是对堆上的对象进行归类，简化可达性分析中的重复扫描的工作量。</p>
+<h2 id="作用阶段"><a href="#作用阶段" class="headerlink" title="作用阶段"></a>作用阶段</h2><p>作用阶段包括初始标记与并发标记。</p>
+<p>初始标记主要是确定 GC Root ，并把根节点标为灰色。初始标记需要暂停用户线程。</p>
+<p>并发标记主要是根据 GC Root 往下扫描子对象，将子对象从白色扭转为黑色&#x2F;灰色。并发标记过程标记线程与用户线程并行。</p>
+<h2 id="可能出现的问题"><a href="#可能出现的问题" class="headerlink" title="可能出现的问题"></a>可能出现的问题</h2><p>在进行回收前，对象有且只会存在两个颜色：黑色以及白色。<br>但由于扫描所有对象耗时久，所以扫描只能与用户线程并发，并发过程中会发生对象图关系的改变，会出现两个问题</p>
+<ol>
+<li>黑色对象变成了白色对象，最终应该被回收但未被回收，俗称浮动垃圾，下一次回收也行。</li>
+<li>白色对象变成了黑色对象，最终不应被回收却被回收了，会导致程序异常。</li>
+</ol>
+<h2 id="问题的原因"><a href="#问题的原因" class="headerlink" title="问题的原因"></a>问题的原因</h2><p>白色对象变成黑色对象的原因，需要同时满足下面两个：</p>
+<ol>
+<li>黑色根对象增加了对上述白色对象的引用。</li>
+<li>灰色根对象删除对白色子对象引用。</li>
+</ol>
+<p>最后的结果是：白色对象实际上是黑色对象，但回收程序仍认为是白色对象。</p>
+<h2 id="问题的解决"><a href="#问题的解决" class="headerlink" title="问题的解决"></a>问题的解决</h2><p>针对上述的变动，解决办法有两个：</p>
+<ol>
+<li>增量更新：记录黑色根对象对白色对象的新增调用，并且以黑色根对象为根重新扫描这部分的引用。</li>
+<li>原始快照：记录灰色根对象删除对白色子对象的删除，并且重新扫描整个对象图。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="left">增量更新</th>
+<th align="left">原始快照</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">优点</td>
+<td align="left">扫描范围小，最终标记过程停顿时间短</td>
+<td align="left">不会产生浮动垃圾，根据对象图重新扫描</td>
+</tr>
+<tr>
+<td align="center">缺点</td>
+<td align="left">产生新的浮动垃圾。仅记录新增引用，未记录删除引用</td>
+<td align="left">最终标记时间长。扫描了整个对象图</td>
+</tr>
+<tr>
+<td align="center">适用范围</td>
+<td align="left">老年代。老年代对象引用变化少，上述缺点出现概率低</td>
+<td align="left">基于 Region 实现的垃圾收集器</td>
+</tr>
+</tbody></table>
+<h2 id="最后的叨叨"><a href="#最后的叨叨" class="headerlink" title="最后的叨叨"></a>最后的叨叨</h2><blockquote>
+<p> 为什么会有并发标记与最终标记两阶段</p>
 </blockquote>
-<p>由于我主要作为测试用的，所以没有设置主从数据库，注释了db.url.1</p>
-<ul>
-<li>验证<br>浏览器访问<a target="_blank" rel="noopener" href="http://ip/nacos/index.html%EF%BC%8C%E8%B4%A6%E5%8F%B7%E5%AF%86%E7%A0%81%E9%83%BD%E4%B8%BAnacos%EF%BC%8C%E5%B0%B1%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%88%B0%E4%B8%BB%E7%95%8C%E9%9D%A2%E4%BA%86%E3%80%82">http://ip/nacos/index.html，账号密码都为nacos，就可以看到主界面了。</a></li>
-</ul>
-<p>经过上面六步，nacos就能正常使用。</p>
-<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这就是我配置nacos的历程。<br>因为nacos是阿里在19年1月才开源出来的，所以网上的资料不算多，大多都要翻官方文档，所以我就吃一下螃蟹。<br>而在开发连接nacos作为dubbo的配置中心中，我也遇到一点小坑，我打算把它放在另一篇文章中，还没动手写，所以应该会迟点出来。</p>
-<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong></p>
-<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/">https://cartoonyu.github.io/cartoon-blog/post/docker/docker下配置nacos/</a></strong></p>
+<p>我觉得主要是为了尽可能缩短 STW 的时间。</p>
+<p>两阶段更像是二八原则的具象化。80%对象关系不会变化，20%对象关系会变化（实际上更少）。</p>
+<p>针对不会变化的部分，并发标记能减少业务感知的时间。针对变化的部分，则记录下来再 STW 确定最终引用关系。</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/">cartoon的博客</a></strong></p>
+<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/">https://cartoonyu.github.io</a></strong></p>
 
     </div>
 
@@ -246,7 +269,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link: </strong>
-    <a href="https://cartoonyu.github.io/2019/10/10/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/" title="Docker下配置nacos">https://cartoonyu.github.io/2019/10/10/docker/docker下配置nacos/</a>
+    <a href="https://cartoonyu.github.io/2025/06/28/JAVA/%E5%AF%B9%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E6%B3%95%E7%9A%84%E7%90%86%E8%A7%A3/" title="对三色标记法的理解">https://cartoonyu.github.io/2025/06/28/JAVA/对三色标记法的理解/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
@@ -256,6 +279,10 @@
 
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JAVA/" rel="tag"># JAVA</a>
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+          </div>
 
         
 
@@ -263,13 +290,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2019/10/09/JAVA/JAVA%E7%9A%84List%E6%8E%A5%E5%8F%A3%E7%9A%84remove%E9%87%8D%E8%BD%BD%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86/" rel="prev" title="JAVA的List接口的remove重载方法调用原理">
-      <i class="fa fa-chevron-left"></i> JAVA的List接口的remove重载方法调用原理
+    <a href="/2025/06/01/JAVA/%E5%B9%B6%E5%8F%91%E6%9B%B4%E6%96%B0%E5%8F%98%E9%87%8F%E7%9A%84%E9%97%AE%E9%A2%98/" rel="prev" title="并发更新变量的问题">
+      <i class="fa fa-chevron-left"></i> 并发更新变量的问题
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2019/10/17/pm/%E4%BF%AE%E6%94%B9maven%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%BB%98%E8%AE%A4%E4%BD%8D%E7%BD%AE/" rel="next" title="修改maven包本地默认位置">
-      修改maven包本地默认位置 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -329,7 +353,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E6%96%87"><span class="nav-number">2.</span> <span class="nav-text">正文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">3.</span> <span class="nav-text">后记</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E6%B3%95%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">2.</span> <span class="nav-text">三色标记法是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BA%E7%8E%B0%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="nav-number">3.</span> <span class="nav-text">出现的原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%9C%E7%94%A8%E9%98%B6%E6%AE%B5"><span class="nav-number">4.</span> <span class="nav-text">作用阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E8%83%BD%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">5.</span> <span class="nav-text">可能出现的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="nav-number">6.</span> <span class="nav-text">问题的原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3"><span class="nav-number">7.</span> <span class="nav-text">问题的解决</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E5%8F%A8%E5%8F%A8"><span class="nav-number">8.</span> <span class="nav-text">最后的叨叨</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -486,7 +510,7 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       repo        : 'cartoonYu.github.io',
       owner       : 'cartoonYu',
       admin       : ['cartoonYu'],
-      id          : '190db5df83daacd5bc0856b73d2008f8',
+      id          : 'e54865f9b1dc6072f84566f0544aaf6b',
         language: 'en',
       distractionFreeMode: true
     });

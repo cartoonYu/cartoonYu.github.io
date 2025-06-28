@@ -152,6 +152,113 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2022/05/18/Ubuntu/Linux%E6%96%B0%E5%A2%9Eswap%E5%88%86%E5%8C%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/05/18/Ubuntu/Linux%E6%96%B0%E5%A2%9Eswap%E5%88%86%E5%8C%BA/" class="post-title-link" itemprop="url">Linux新增swap分区</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-05-18 22:11:40" itemprop="dateCreated datePublished" datetime="2022-05-18T22:11:40+00:00">2022-05-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>近段时间在服务器搭建中间件，发现物理内存不足，因为对性能要求不高，所以就求助 swap 了。</p>
+<p>下面是 ubuntu 的 swap 构建的步骤</p>
+<ol>
+<li>新建 swap 文件（&#x2F;root&#x2F;swapfile）</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dd if=/dev/zero of=/root/swapfile bs=1M count=8192</span><br><span class="line"></span><br><span class="line">swap 文件位置：/root/swapfile</span><br><span class="line">swap 文件大小：bs（文件块）* count（块数）</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="2">
+<li>格式化 swap</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkswap /root/swapfile</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="3">
+<li>启动 swap</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">swapon /root/swapfile</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="4">
+<li><p>开机自启动（非必要）</p>
+<ol>
+<li>打开  &#x2F;etc&#x2F;fstab</li>
+<li>在文件末尾追加以下内容</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/root/swapfile swap swap defaults 0 0</span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>关闭 swap （可在不需要）</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">swapoff -a</span><br></pre></td></tr></table></figure>
+
+
+
+<p>以上就是 Linux 下新建 swap 缓存的步骤。</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/">cartoon的博客</a></strong></p>
+<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/">https://cartoonyu.github.io</a></strong></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2022/03/07/Algorithms/%E4%B8%80%E8%87%B4%E6%80%A7%20hash%20%E7%AE%97%E6%B3%95%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +290,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -343,7 +450,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -585,7 +692,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -720,7 +827,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -808,7 +915,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -915,7 +1022,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -1118,7 +1225,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -1220,7 +1327,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -1301,7 +1408,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
+                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
               </span>
 
           
@@ -1345,127 +1452,6 @@
 <h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这就是我配置nacos的历程。<br>因为nacos是阿里在19年1月才开源出来的，所以网上的资料不算多，大多都要翻官方文档，所以我就吃一下螃蟹。<br>而在开发连接nacos作为dubbo的配置中心中，我也遇到一点小坑，我打算把它放在另一篇文章中，还没动手写，所以应该会迟点出来。</p>
 <p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong></p>
 <p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/">https://cartoonyu.github.io/cartoon-blog/post/docker/docker下配置nacos/</a></strong></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/09/JAVA/JAVA%E7%9A%84List%E6%8E%A5%E5%8F%A3%E7%9A%84remove%E9%87%8D%E8%BD%BD%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/10/09/JAVA/JAVA%E7%9A%84List%E6%8E%A5%E5%8F%A3%E7%9A%84remove%E9%87%8D%E8%BD%BD%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86/" class="post-title-link" itemprop="url">JAVA的List接口的remove重载方法调用原理</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-10-09 14:37:49" itemprop="dateCreated datePublished" datetime="2019-10-09T14:37:49+00:00">2019-10-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-01 08:43:47" itemprop="dateModified" datetime="2025-06-01T08:43:47+00:00">2025-06-01</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>说真的，平常看源码都是自己看完自己懂，很少有写出来的冲动。<br>但是在写算法的时候，经常用到java中各种集合，其中也比较常用到remove方法。<br>remove有重载函数，分别传入参数是索引index或者数据Object(指定泛型后自动转换)，如果指定泛型是其他数据类型还好，但是指定的是Integer或者是int的话，或者就有点懵了。<br>这曾经也困惑过我，所以我就唯有用实践解惑了。</p>
-<h3 id="测试类设计"><a href="#测试类设计" class="headerlink" title="测试类设计"></a>测试类设计</h3><ul>
-<li><p>测试类一</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Text</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">remove</span><span class="params">(<span class="type">int</span> index)</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;调用传参为int的remove方法&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">remove</span><span class="params">(Integer object)</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;调用传参为Integer的remove方法&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">remove</span><span class="params">(Object object)</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;调用传参为Object的remove方法&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>测试类二</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public class Text &#123;</span><br><span class="line">    </span><br><span class="line">    public void remove(Integer object)&#123;</span><br><span class="line">        System.out.println(&quot;调用传参为Integer的remove方法&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void remove(Object object)&#123;</span><br><span class="line">        System.out.println(&quot;调用传参为Object的remove方法&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>测试类三</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public class Text &#123;</span><br><span class="line"></span><br><span class="line">    public void remove(Object object)&#123;</span><br><span class="line">        System.out.println(&quot;调用传参为Object的remove方法&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-</ul>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>三个测试类分别传入int，Integer，Object型变量，观察效果。</p>
-<ul>
-<li><p>测试类一</p>
-<blockquote>
-<p>传入类型为int：调用传参为int的remove方法<br>传入类型为Integer：调用传参为Integer的remove方法<br>传入类型为Object：调用传参为Object的remove方法</p>
-</blockquote>
-</li>
-<li><p>测试类二</p>
-<blockquote>
-<p>传入类型为int：调用传参为Integer的remove方法<br>传入类型为Integer：调用传参为Integer的remove方法<br>传入类型为Object：调用传参为Object的remove方法</p>
-</blockquote>
-</li>
-<li><p>测试类三</p>
-<blockquote>
-<p>传入类型为int：调用传参为Object的remove方法<br>传入类型为Integer：调用传参为Object的remove方法<br>传入类型为Object：调用传参为Object的remove方法</p>
-</blockquote>
-</li>
-</ul>
-<p>从输出结果可以看出，当方法的传参的类层级逐渐变高时，层级较低的传参会进行向上转型适应传参的需要。</p>
-<h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3><p>下面我们先反编译各测试类的源码，结果如下</p>
-<ul>
-<li><p>测试类一</p>
-<blockquote>
-<p>invokevirtual #11                 &#x2F;&#x2F; Method remove:(I)V</p>
-<p>invokevirtual #15                 &#x2F;&#x2F; Method remove:(Ljava&#x2F;lang&#x2F;Integer;)V</p>
-<p>invokevirtual #18                 &#x2F;&#x2F; Method remove:(Ljava&#x2F;lang&#x2F;Object;)V</p>
-</blockquote>
-</li>
-<li><p>测试类二</p>
-<blockquote>
-<p>invokevirtual #11                 &#x2F;&#x2F; Method remove:(Ljava&#x2F;lang&#x2F;Integer;)V</p>
-<p>invokevirtual #11                 &#x2F;&#x2F; Method remove:(Ljava&#x2F;lang&#x2F;Integer;)V</p>
-<p>invokevirtual #17                 &#x2F;&#x2F; Method remove:(Ljava&#x2F;lang&#x2F;Object;)V    </p>
-</blockquote>
-</li>
-<li><p>测试类三</p>
-<blockquote>
-<p>invokevirtual #10                 &#x2F;&#x2F; Method remove:(Ljava&#x2F;lang&#x2F;Object;)V</p>
-<p>invokevirtual #10                 &#x2F;&#x2F; Method remove:(Ljava&#x2F;lang&#x2F;Object;)V</p>
-<p>invokevirtual #10                 &#x2F;&#x2F; Method remove:(Ljava&#x2F;lang&#x2F;Object;)V</p>
-</blockquote>
-</li>
-</ul>
-<p>可以看出，反编译代码中都是调用实例方法的命令，所以结果中自动”向上转型”其实是jvm的功劳。jvm通过在编译时确定调用的传参类型，静态分派到具体方法的。<br>所以在前言中的困惑已经解除了，就是由于jvm中静态分派的实现，调用次序是int-&gt;Integer-&gt;Object。</p>
-<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>也没什么想说的，感觉在阅读源码的时候必须多想想为什么这样做，为什么要这样实现，同时通过断点或者反编译的手段找出自己的答案。keep going!</p>
-<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/java/java%E7%9A%84list%E6%8E%A5%E5%8F%A3%E7%9A%84remove%E9%87%8D%E8%BD%BD%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86/">https://cartoonyu.github.io/cartoon-blog/post/java/java的list接口的remove重载方法调用原理/</a></strong></p>
 
       
     </div>
@@ -1550,12 +1536,12 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
