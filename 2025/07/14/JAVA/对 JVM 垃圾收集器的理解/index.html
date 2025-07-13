@@ -22,13 +22,13 @@
 
   <meta name="description" content="前言最近在研究 JVM 相关的知识点，对垃圾收集器有一些自己的看法，所以就记录下来。 垃圾收集器定义顾名思义，垃圾收集器就是清理程序运行过程中产生的垃圾，防止对象膨胀导致应用程序 OOM。 而垃圾指的是当前时刻下程序不再需要使用的对象，即不可达对象。 作用过程根据定义，垃圾收集器过程分为两大步：识别垃圾（不可达对象），清理不可达对象。 识别不可达对象不可达对象的定义：程序中其他对象对该对象的引用次">
 <meta property="og:type" content="article">
-<meta property="og:title" content="对 JVM 垃圾收集器的理解.md">
+<meta property="og:title" content="对 JVM 垃圾收集器的理解">
 <meta property="og:url" content="https://cartoonyu.github.io/2025/07/14/JAVA/%E5%AF%B9%20JVM%20%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/index.html">
 <meta property="og:site_name" content="cartoon&#39;s blog">
 <meta property="og:description" content="前言最近在研究 JVM 相关的知识点，对垃圾收集器有一些自己的看法，所以就记录下来。 垃圾收集器定义顾名思义，垃圾收集器就是清理程序运行过程中产生的垃圾，防止对象膨胀导致应用程序 OOM。 而垃圾指的是当前时刻下程序不再需要使用的对象，即不可达对象。 作用过程根据定义，垃圾收集器过程分为两大步：识别垃圾（不可达对象），清理不可达对象。 识别不可达对象不可达对象的定义：程序中其他对象对该对象的引用次">
 <meta property="og:locale">
 <meta property="article:published_time" content="2025-07-14T00:37:35.000Z">
-<meta property="article:modified_time" content="2025-07-13T17:14:20.974Z">
+<meta property="article:modified_time" content="2025-07-13T17:21:28.726Z">
 <meta property="article:author" content="cartoon Yu">
 <meta property="article:tag" content="JAVA">
 <meta property="article:tag" content="JVM">
@@ -47,7 +47,7 @@
   };
 </script>
 
-  <title>对 JVM 垃圾收集器的理解.md | cartoon's blog</title>
+  <title>对 JVM 垃圾收集器的理解 | cartoon's blog</title>
   
 
 
@@ -170,7 +170,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          对 JVM 垃圾收集器的理解.md
+          对 JVM 垃圾收集器的理解
         </h1>
 
         <div class="post-meta">
@@ -187,7 +187,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
+                <time title="Modified: 2025-07-13 17:21:28" itemprop="dateModified" datetime="2025-07-13T17:21:28+00:00">2025-07-13</time>
               </span>
 
           
@@ -439,7 +439,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link: </strong>
-    <a href="https://cartoonyu.github.io/2025/07/14/JAVA/%E5%AF%B9%20JVM%20%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/" title="对 JVM 垃圾收集器的理解.md">https://cartoonyu.github.io/2025/07/14/JAVA/对 JVM 垃圾收集器的理解/</a>
+    <a href="https://cartoonyu.github.io/2025/07/14/JAVA/%E5%AF%B9%20JVM%20%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/" title="对 JVM 垃圾收集器的理解">https://cartoonyu.github.io/2025/07/14/JAVA/对 JVM 垃圾收集器的理解/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
