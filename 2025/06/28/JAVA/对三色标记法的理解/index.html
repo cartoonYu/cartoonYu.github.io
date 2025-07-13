@@ -28,7 +28,7 @@
 <meta property="og:description" content="前言最近在回看 JVM 的相关概念，看到了三色标记法的使用，所以就记录一下。 三色标记法是什么在可达性分析的过程中，对象有且只有三种状态：完全没被扫描，对象被扫描但子对象还没完全被扫描，对象与其子对象都被扫描了。 而这三种状态即为三种颜色 123白色：完全没被扫描。对象与子对象确定被回收。灰色：对象被扫描但子对象还没完全被扫描。根对象确定存活，子对象可能被回收。黑色：对象与其子对象都被扫描了。对象">
 <meta property="og:locale">
 <meta property="article:published_time" content="2025-06-28T10:46:00.000Z">
-<meta property="article:modified_time" content="2025-06-28T02:50:14.030Z">
+<meta property="article:modified_time" content="2025-07-13T17:14:20.974Z">
 <meta property="article:author" content="cartoon Yu">
 <meta property="article:tag" content="JAVA">
 <meta property="article:tag" content="JVM">
@@ -179,10 +179,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2025-06-28 10:46:00 / Modified: 02:50:14" itemprop="dateCreated datePublished" datetime="2025-06-28T10:46:00+00:00">2025-06-28</time>
+              <time title="Created: 2025-06-28 10:46:00" itemprop="dateCreated datePublished" datetime="2025-06-28T10:46:00+00:00">2025-06-28</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
+              </span>
 
           
 
@@ -293,7 +299,10 @@
     <a href="/2025/06/01/JAVA/%E5%B9%B6%E5%8F%91%E6%9B%B4%E6%96%B0%E5%8F%98%E9%87%8F%E7%9A%84%E9%97%AE%E9%A2%98/" rel="prev" title="并发更新变量的问题">
       <i class="fa fa-chevron-left"></i> 并发更新变量的问题
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2025/07/14/JAVA/%E5%AF%B9%20JVM%20%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/" rel="next" title="对 JVM 垃圾收集器的理解.md">
+      对 JVM 垃圾收集器的理解.md <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -367,7 +376,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-count">48</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

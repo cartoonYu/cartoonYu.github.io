@@ -152,6 +152,216 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2022/06/06/cache/%E7%BC%93%E5%86%B2%E6%9B%B4%E6%96%B0%E7%AD%96%E7%95%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/06/06/cache/%E7%BC%93%E5%86%B2%E6%9B%B4%E6%96%B0%E7%AD%96%E7%95%A5/" class="post-title-link" itemprop="url">缓冲更新策略</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-06-06 22:34:32" itemprop="dateCreated datePublished" datetime="2022-06-06T22:34:32+00:00">2022-06-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>近段时间在学习缓存相关知识的时候，看到了缓存更新策略，于是就根据自己的理解，写下这篇文章</p>
+<h5 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h5><ul>
+<li>Cache Aside</li>
+<li>Read &#x2F; Write Though</li>
+<li>Write Behind</li>
+</ul>
+<h5 id="Cache-Aside"><a href="#Cache-Aside" class="headerlink" title="Cache Aside"></a>Cache Aside</h5><ol>
+<li><p>步骤</p>
+<ol>
+<li>读请求未命中缓存，取数据库数据，并回写缓存</li>
+<li>写请求先更新数据库，再让缓存失效</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li>实现简单，调用者可控制数据持久化的细节</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li>上层需要同时管理缓存与持久化，调用较复杂</li>
+<li>写请求与读请求并发，读请求持续时间比写请求长，可能会覆盖旧数据到缓存中</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li>允许缓存数据不准确的场景</li>
+<li>因为并发情况下，可能造成脏数据的情况，所以 QPS 较低场景也可以适用</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CacheAside</span>&lt;T, K&gt; <span class="keyword">implements</span> <span class="title class_">CacheUpdate</span>&lt;T, K&gt;&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;K, T&gt; map;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> T <span class="title function_">getData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        <span class="comment">//if cache has data, return</span></span><br><span class="line">        <span class="keyword">return</span> map.get(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">updateData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        map.remove(key, data);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">addData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Objects.nonNull(map.put(key, data));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">removeData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        map.remove(key);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">CacheAside</span><span class="params">()</span> &#123;</span><br><span class="line">        map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="5">
+<li>调用示例</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CacheAsideClient</span>&lt;T, K&gt; <span class="keyword">implements</span> <span class="title class_">CacheUpdateClient</span>&lt;T, K&gt;&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> CacheUpdateFactory&lt;T, K&gt; factory = CacheUpdateFactory.getInstance();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> CacheUpdate&lt;T, K&gt; cacheUpdate;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> DatabaseOperation&lt;T, K&gt; databaseOperation;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> T <span class="title function_">getData</span><span class="params">(K key)</span>&#123;</span><br><span class="line">        <span class="comment">//get data from cache</span></span><br><span class="line">        <span class="type">T</span> <span class="variable">dataFromCache</span> <span class="operator">=</span> cacheUpdate.getData(key);</span><br><span class="line">        <span class="comment">//if cache haven&#x27;t, get from database and put to cache</span></span><br><span class="line">        <span class="keyword">if</span>(Objects.nonNull(dataFromCache))&#123;</span><br><span class="line">            <span class="keyword">return</span> dataFromCache;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">T</span> <span class="variable">dataFromDatabase</span> <span class="operator">=</span> databaseOperation.getData(key);</span><br><span class="line">        cacheUpdate.addData(key, dataFromDatabase);</span><br><span class="line">        <span class="keyword">return</span> dataFromDatabase;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">updateData</span><span class="params">(K key, T data)</span>&#123;</span><br><span class="line">        <span class="comment">//update data to database</span></span><br><span class="line">        <span class="type">boolean</span> <span class="variable">updateToDatabaseRes</span> <span class="operator">=</span> databaseOperation.updateData(key, data);</span><br><span class="line">        <span class="keyword">if</span>(updateToDatabaseRes)&#123;</span><br><span class="line">            <span class="comment">//invalid cache data</span></span><br><span class="line">            <span class="keyword">return</span> cacheUpdate.removeData(key);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">addData</span><span class="params">(K key, T data)</span>&#123;</span><br><span class="line">        <span class="comment">//add data to database</span></span><br><span class="line">        <span class="keyword">return</span> databaseOperation.addData(key, data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">removeData</span><span class="params">(K key)</span>&#123;</span><br><span class="line">        <span class="comment">//remove from database</span></span><br><span class="line">        <span class="type">boolean</span> <span class="variable">removeFromDatabaseRes</span> <span class="operator">=</span> databaseOperation.removeData(key);</span><br><span class="line">        <span class="keyword">if</span>(removeFromDatabaseRes)&#123;</span><br><span class="line">            <span class="comment">//invalid cache data</span></span><br><span class="line">            <span class="keyword">return</span> cacheUpdate.removeData(key);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">CacheAsideClient</span><span class="params">()</span> &#123;</span><br><span class="line">        cacheUpdate = factory.getObject(CacheUpdateEnum.CACHE_ASIDE);</span><br><span class="line">        databaseOperation = (DatabaseOperation&lt;T, K&gt;) <span class="keyword">new</span> <span class="title class_">MockDatabaseOperation</span>&lt;T&gt;();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="Read-x2F-Write-Though"><a href="#Read-x2F-Write-Though" class="headerlink" title="Read &#x2F; Write Though"></a>Read &#x2F; Write Though</h5><ol>
+<li><p>步骤</p>
+<ol>
+<li>读&#x2F;写请求都只依赖缓存</li>
+<li>缓存数据同步持久化</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li>上层对数据是否持久化&#x2F;持久化实现无感</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li>同步持久化性能较低，但能有效保证数据一致性</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li>性能要求不高的场景</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ReadOrWriteThough</span>&lt;T, K&gt; <span class="keyword">implements</span> <span class="title class_">CacheUpdate</span>&lt;T, K&gt;&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> DatabaseOperation&lt;T, K&gt; databaseOperation;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;K, T&gt; map;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> T <span class="title function_">getData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        <span class="comment">//if cache has data, return</span></span><br><span class="line">        <span class="keyword">if</span>(map.containsKey(key))&#123;</span><br><span class="line">            <span class="keyword">return</span> map.get(key);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//get data from database and write to cache</span></span><br><span class="line">        <span class="type">T</span> <span class="variable">data</span> <span class="operator">=</span> databaseOperation.getData(key);</span><br><span class="line">        map.put(key, data);</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">updateData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        map.put(key, data);</span><br><span class="line">        <span class="keyword">return</span> databaseOperation.updateData(key, data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">addData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        map.put(key, data);</span><br><span class="line">        <span class="keyword">return</span> databaseOperation.addData(key, data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">removeData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        map.remove(key);</span><br><span class="line">        <span class="keyword">return</span> databaseOperation.removeData(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ReadOrWriteThough</span><span class="params">()</span> &#123;</span><br><span class="line">        databaseOperation = (DatabaseOperation&lt;T, K&gt;) <span class="keyword">new</span> <span class="title class_">MockDatabaseOperation</span>&lt;&gt;();</span><br><span class="line">        map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>调用示例</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ReadOrWriteThoughClient</span>&lt;T, K&gt; <span class="keyword">implements</span> <span class="title class_">CacheUpdateClient</span>&lt;T, K&gt;&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> CacheUpdateFactory&lt;T, K&gt; factory = CacheUpdateFactory.getInstance();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> CacheUpdate&lt;T, K&gt; cacheUpdate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> T <span class="title function_">getData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cacheUpdate.getData(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">updateData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cacheUpdate.updateData(key, data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">addData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cacheUpdate.addData(key, data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">removeData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cacheUpdate.removeData(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ReadOrWriteThoughClient</span><span class="params">()</span> &#123;</span><br><span class="line">        cacheUpdate = factory.getObject(CacheUpdateEnum.READ_WRITE_THOUGH);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="Write-Behind"><a href="#Write-Behind" class="headerlink" title="Write Behind"></a>Write Behind</h5><ol>
+<li><p>步骤</p>
+<ol>
+<li>读&#x2F;写请求都只依赖缓存</li>
+<li>缓存数据异步批量持久化</li>
+</ol>
+</li>
+<li><p>优点</p>
+<ol>
+<li>上层对数据是否持久化&#x2F;持久化实现无感</li>
+<li>异步持久化，性能较 Read &#x2F;Write Though 提高</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li>异步持久化可能会导致数据丢失</li>
+</ol>
+</li>
+<li><p>使用场景</p>
+<ol>
+<li>性能要求较高的场景</li>
+<li>允许持久化数据丢失场景</li>
+</ol>
+</li>
+<li><p>代码示例</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WriteBehind</span>&lt;T, K&gt; <span class="keyword">implements</span> <span class="title class_">CacheUpdate</span>&lt;T, K&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;K, T&gt; map;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> DatabaseOperation&lt;T, K&gt; databaseOperation;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ThreadPoolExecutor threadPoolExecutor;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> T <span class="title function_">getData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(map.containsKey(key))&#123;</span><br><span class="line">            <span class="keyword">return</span> map.get(key);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">T</span> <span class="variable">data</span> <span class="operator">=</span> databaseOperation.getData(key);</span><br><span class="line">        map.put(key, data);</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">updateData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        map.put(key, data);</span><br><span class="line">        threadPoolExecutor.execute(() -&gt; databaseOperation.updateData(key, data));</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">addData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        map.put(key, data);</span><br><span class="line">        threadPoolExecutor.execute(() -&gt; databaseOperation.addData(key, data));</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">removeData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        map.remove(key);</span><br><span class="line">        threadPoolExecutor.execute(() -&gt; databaseOperation.removeData(key));</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">WriteBehind</span><span class="params">()</span> &#123;</span><br><span class="line">        map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        databaseOperation = (DatabaseOperation&lt;T, K&gt;) <span class="keyword">new</span> <span class="title class_">MockDatabaseOperation</span>&lt;&gt;();</span><br><span class="line">        threadPoolExecutor = <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>(<span class="number">5</span>, <span class="number">10</span>, <span class="number">1000</span>, TimeUnit.SECONDS, <span class="keyword">new</span> <span class="title class_">ArrayBlockingQueue</span>&lt;&gt;(<span class="number">1000</span>), <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>.CallerRunsPolicy());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="5">
+<li>调用示例</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WriteBehindClient</span>&lt;T, K&gt; <span class="keyword">implements</span> <span class="title class_">CacheUpdateClient</span>&lt;T, K&gt;&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> CacheUpdateFactory&lt;T, K&gt; cacheUpdateFactory = CacheUpdateFactory.getInstance();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> CacheUpdate&lt;T, K&gt; cacheUpdate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> T <span class="title function_">getData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cacheUpdate.getData(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">updateData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cacheUpdate.updateData(key, data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">addData</span><span class="params">(K key, T data)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cacheUpdate.addData(key, data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">removeData</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cacheUpdate.removeData(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">WriteBehindClient</span><span class="params">()</span> &#123;</span><br><span class="line">        cacheUpdate = cacheUpdateFactory.getObject(CacheUpdateEnum.WRITE_BEHIND);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><table>
+<thead>
+<tr>
+<th>分类</th>
+<th>优点</th>
+<th>缺点</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cache Aside</td>
+<td>1. 实现简单，调用者可控制数据持久化的细节</td>
+<td>1. 写请求与读请求并发，读请求持续时间比写请求长，可能会覆盖旧数据到缓存中<br />2. 上层需要同时管理缓存与持久化，调用较复杂</td>
+<td>1. 允许缓存数据不准确的场景<br />2. 因为并发情况下，可能造成脏数据的情况，所以 QPS 较低场景也可以适用</td>
+</tr>
+<tr>
+<td>Read &#x2F; Write Though</td>
+<td>1. 上层对数据是否持久化&#x2F;持久化实现无感</td>
+<td>1. 同步持久化性能较低，但能有效保证数据一致性</td>
+<td>1. 性能要求不高的场景</td>
+</tr>
+<tr>
+<td>Write Behind</td>
+<td>1. 上层对数据是否持久化&#x2F;持久化实现无感<br />2. 异步持久化，性能较 Read &#x2F;Write Though 提高</td>
+<td>1. 异步持久化可能会导致数据丢失</td>
+<td>1. 性能要求较高的场景<br />2. 允许持久化数据丢失场景</td>
+</tr>
+</tbody></table>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/">cartoon的博客</a></strong></p>
+<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/">https://cartoonyu.github.io</a></strong></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2022/05/18/Ubuntu/Linux%E6%96%B0%E5%A2%9Eswap%E5%88%86%E5%8C%BA/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +393,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -290,7 +500,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -450,7 +660,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -692,7 +902,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -827,7 +1037,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -915,7 +1125,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -1022,7 +1232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -1225,7 +1435,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -1327,7 +1537,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -1358,100 +1568,6 @@
 </ul>
 <p>修改圈起来的三个配置项就可以了</p>
 <p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><br/><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/pm/%E4%BF%AE%E6%94%B9maven%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%BB%98%E8%AE%A4%E4%BD%8D%E7%BD%AE/">https://cartoonyu.github.io/cartoon-blog/post/pm/修改maven包本地默认位置/</a></strong></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/10/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/10/10/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/" class="post-title-link" itemprop="url">Docker下配置nacos</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-10-10 12:18:23" itemprop="dateCreated datePublished" datetime="2019-10-10T12:18:23+00:00">2019-10-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>近段时间在学dubbo，dubbo-admin死活装不上，无论是本地还是docker，所以把目光投向了其他配置中心，我选定的是阿里新开源的nacos。</p>
-<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><ul>
-<li><p>拉取镜像到本地docker</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull nacos/nacos-server</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>新建nacos容器</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --env MODE=standalone --name nacos -d -p 8848:8848 nacos/nacos-server</span><br></pre></td></tr></table></figure>
-<p>其中env参数是指定容器所处环境，这里是指建立单机版的nacos。</p>
-</li>
-<li><p>新建数据库用于节点以及数据的保存</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create database nacos_config;</span><br></pre></td></tr></table></figure>
-<p>其中数据库名自定义</p>
-</li>
-<li><p>导入脚本<br>可以到<a target="_blank" rel="noopener" href="https://github.com/alibaba/nacos/blob/master/config/src/main/resources/META-INF/nacos-db.sql">官网</a>复制或者用<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1ZGnzp4DgGNCGCtyGst6I3g">我上传的脚本</a>，提取码为jm6z </p>
-</li>
-<li><p>修改nacos在conf的配置文件application.properties<br><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20191010204357.png"></p>
-</li>
-</ul>
-<p>主要修改的地方有：</p>
-<blockquote>
-<p>db.url.0<br>db.url.1<br>db.user<br>db.password</p>
-</blockquote>
-<p>由于我主要作为测试用的，所以没有设置主从数据库，注释了db.url.1</p>
-<ul>
-<li>验证<br>浏览器访问<a target="_blank" rel="noopener" href="http://ip/nacos/index.html%EF%BC%8C%E8%B4%A6%E5%8F%B7%E5%AF%86%E7%A0%81%E9%83%BD%E4%B8%BAnacos%EF%BC%8C%E5%B0%B1%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%88%B0%E4%B8%BB%E7%95%8C%E9%9D%A2%E4%BA%86%E3%80%82">http://ip/nacos/index.html，账号密码都为nacos，就可以看到主界面了。</a></li>
-</ul>
-<p>经过上面六步，nacos就能正常使用。</p>
-<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这就是我配置nacos的历程。<br>因为nacos是阿里在19年1月才开源出来的，所以网上的资料不算多，大多都要翻官方文档，所以我就吃一下螃蟹。<br>而在开发连接nacos作为dubbo的配置中心中，我也遇到一点小坑，我打算把它放在另一篇文章中，还没动手写，所以应该会迟点出来。</p>
-<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong></p>
-<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/">https://cartoonyu.github.io/cartoon-blog/post/docker/docker下配置nacos/</a></strong></p>
 
       
     </div>
@@ -1536,7 +1652,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-count">48</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

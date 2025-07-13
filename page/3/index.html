@@ -152,6 +152,100 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/10/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartoon Yu">
+      <meta itemprop="description" content="do what I like, love who I love">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cartoon's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/10/10/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/" class="post-title-link" itemprop="url">Docker下配置nacos</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-10-10 12:18:23" itemprop="dateCreated datePublished" datetime="2019-10-10T12:18:23+00:00">2019-10-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>近段时间在学dubbo，dubbo-admin死活装不上，无论是本地还是docker，所以把目光投向了其他配置中心，我选定的是阿里新开源的nacos。</p>
+<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><ul>
+<li><p>拉取镜像到本地docker</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull nacos/nacos-server</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>新建nacos容器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --env MODE=standalone --name nacos -d -p 8848:8848 nacos/nacos-server</span><br></pre></td></tr></table></figure>
+<p>其中env参数是指定容器所处环境，这里是指建立单机版的nacos。</p>
+</li>
+<li><p>新建数据库用于节点以及数据的保存</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create database nacos_config;</span><br></pre></td></tr></table></figure>
+<p>其中数据库名自定义</p>
+</li>
+<li><p>导入脚本<br>可以到<a target="_blank" rel="noopener" href="https://github.com/alibaba/nacos/blob/master/config/src/main/resources/META-INF/nacos-db.sql">官网</a>复制或者用<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1ZGnzp4DgGNCGCtyGst6I3g">我上传的脚本</a>，提取码为jm6z </p>
+</li>
+<li><p>修改nacos在conf的配置文件application.properties<br><img src="https://raw.githubusercontent.com/cartoonYu/cartoon-blog-image/master/20191010204357.png"></p>
+</li>
+</ul>
+<p>主要修改的地方有：</p>
+<blockquote>
+<p>db.url.0<br>db.url.1<br>db.user<br>db.password</p>
+</blockquote>
+<p>由于我主要作为测试用的，所以没有设置主从数据库，注释了db.url.1</p>
+<ul>
+<li>验证<br>浏览器访问<a target="_blank" rel="noopener" href="http://ip/nacos/index.html%EF%BC%8C%E8%B4%A6%E5%8F%B7%E5%AF%86%E7%A0%81%E9%83%BD%E4%B8%BAnacos%EF%BC%8C%E5%B0%B1%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%88%B0%E4%B8%BB%E7%95%8C%E9%9D%A2%E4%BA%86%E3%80%82">http://ip/nacos/index.html，账号密码都为nacos，就可以看到主界面了。</a></li>
+</ul>
+<p>经过上面六步，nacos就能正常使用。</p>
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这就是我配置nacos的历程。<br>因为nacos是阿里在19年1月才开源出来的，所以网上的资料不算多，大多都要翻官方文档，所以我就吃一下螃蟹。<br>而在开发连接nacos作为dubbo的配置中心中，我也遇到一点小坑，我打算把它放在另一篇文章中，还没动手写，所以应该会迟点出来。</p>
+<p><strong>本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong></p>
+<p><strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/docker/docker%E4%B8%8B%E9%85%8D%E7%BD%AEnacos/">https://cartoonyu.github.io/cartoon-blog/post/docker/docker下配置nacos/</a></strong></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/10/09/JAVA/JAVA%E7%9A%84List%E6%8E%A5%E5%8F%A3%E7%9A%84remove%E9%87%8D%E8%BD%BD%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +277,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -304,7 +398,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -401,7 +495,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -530,7 +624,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -655,7 +749,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -754,7 +848,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -858,7 +952,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -974,7 +1068,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -1104,7 +1198,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
+                <time title="Modified: 2025-07-13 17:14:20" itemprop="dateModified" datetime="2025-07-13T17:14:20+00:00">2025-07-13</time>
               </span>
 
           
@@ -1326,261 +1420,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://cartoonyu.github.io/2019/06/08/JAVA/JAVA%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartoon Yu">
-      <meta itemprop="description" content="do what I like, love who I love">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="cartoon's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/06/08/JAVA/JAVA%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/" class="post-title-link" itemprop="url">JAVA遍历机制的性能的比较</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-06-08 15:58:58" itemprop="dateCreated datePublished" datetime="2019-06-08T15:58:58+00:00">2019-06-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-28 02:50:14" itemprop="dateModified" datetime="2025-06-28T02:50:14+00:00">2025-06-28</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;本文首发于<a href="https://cartoonyu.github.io/cartoon-blog/">cartoon的博客</a></strong><br><br />&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;<strong>转载请注明出处:<a href="https://cartoonyu.github.io/cartoon-blog/post/java/java%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/">https://cartoonyu.github.io/cartoon-blog/post/java/java%E9%81%8D%E5%8E%86%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83/</a></strong></p>
-<h3 id="缘由"><a href="#缘由" class="headerlink" title="缘由"></a>缘由</h3><p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;近段时间在写leetcode的<a target="_blank" rel="noopener" href="https://github.com/cartoonYu/LeetCodeSolution/blob/master/Solution/src/Solution860.java">Lemonade Change</a>时候，发现了for循环与forEach循环的耗时是不一致的，在提交记录上面差了一倍……</p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;平常开发绝大部分业务逻辑的实现都需要遍历机制的帮忙，虽说也有注意到各数据结构操作的性能比较，但是忽视了遍历机制性能的差异。原本前两天就开始动手写，拖延症……</p>
-<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;现阶段我所知道JAVA遍历机制有三种</p>
-<ul>
-<li><p>for循环</p>
-</li>
-<li><p>forEach循环</p>
-</li>
-<li><p>Iterator循环</p>
-</li>
-</ul>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;JAVA数据结构千千万，但是大部分都是对基础数据结构的封装，比较HashMap依赖于Node数组，LinkedList底层是链表，ArrayList对数组的再封装……扯远了</p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;总结来说，JAVA的基础数据结构，我觉得有两种</p>
-<ul>
-<li>数组</li>
-<li>链表</li>
-</ul>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果是加上Hash(Hash的操作与数组以及链表不太一致)，就是三种</p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;因为平常开发大部分都优先选择包装后的数据结构，所以下面我会使用</p>
-<ul>
-<li>ArrayList(包装后的数组)</li>
-<li>LinkedList(包装后的链表)</li>
-<li>HashSet(包装后的Hash类型数组)</li>
-</ul>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;这三种数据结构在遍历机制不同的时候时间的差异</p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;可能有人对我为什么不对比HashMap呢，因为JAVA设计中，是先实现了Map，再实现Set。如果你有阅读过源码就会发现:每个Set子类的实现中，都有一个序列化后的Map对应属性实现，而因为Hash的查找时间复杂度为O(1)，得出key后查找value的时间大致是一致的，所以我不对比HashMap。</p>
-<p><em><strong>题外话</strong></em></p>
-<p><em><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;我在阅读《疯狂JAVA》读到:JAVA的设计者将Map的内部entry数组中的value设为null进而实现了Set。因为我是以源码以及官方文档为准，具体我不清楚正确与否，但是因为Hash中的key互不相同，Set中元素也互不相同，所以我认为这个观点是正确的。</strong></em></p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;为了测试的公平性，我会采取以下的限定</p>
-<ul>
-<li>每种数据结构的大小都设置三种量级<ul>
-<li>10</li>
-<li>100</li>
-<li>1000</li>
-</ul>
-</li>
-<li>元素都采用随机数生成</li>
-<li>遍历进行操作都为输出当前元素的值</li>
-</ul>
-<p><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;注:时间开销受本地环境的影响，可能测量值会出现变化，但是总体上比例是正确的</strong></p>
-<h4 id="ArrayList的比较"><a href="#ArrayList的比较" class="headerlink" title="ArrayList的比较"></a>ArrayList的比较</h4><ul>
-<li><p>代码</p>
-  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line">public class TextArray &#123;</span><br><span class="line"></span><br><span class="line">    private static Random random;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list1;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list2;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list3;</span><br><span class="line"></span><br><span class="line">    public static void execute()&#123;</span><br><span class="line">        random=new Random();</span><br><span class="line">        initArray();</span><br><span class="line">        testForWith10Object();</span><br><span class="line">        testForEachWith10Object();</span><br><span class="line">        testIteratorWith10Object();</span><br><span class="line">        testForWith100Object();</span><br><span class="line">        testForEachWith100Object();</span><br><span class="line">        testIteratorWith100Object();</span><br><span class="line">        testForWith1000Object();</span><br><span class="line">        testForEachWith1000Object();</span><br><span class="line">        testIteratorWith1000Object();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith10Object()&#123;</span><br><span class="line">        printFor(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith100Object()&#123;</span><br><span class="line">        printFor(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith1000Object()&#123;</span><br><span class="line">        printFor(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith10Object()&#123;</span><br><span class="line">        printForeach(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith100Object()&#123;</span><br><span class="line">        printForeach(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith1000Object()&#123;</span><br><span class="line">        printForeach(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith10Object() &#123;</span><br><span class="line">        printIterator(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith100Object() &#123;</span><br><span class="line">        printIterator(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith1000Object() &#123;</span><br><span class="line">        printIterator(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printFor(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int i=0,length=list.size();i&lt;length;i++)&#123;</span><br><span class="line">            System.out.print(list.get(i)+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;for for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printForeach(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int temp:list)&#123;</span><br><span class="line">            System.out.print(temp+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;foreach for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printIterator(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        Iterator&lt;Integer&gt; it=list.iterator();</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        while(it.hasNext())&#123;</span><br><span class="line">            System.out.print(it.next()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;iterator for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void initArray()&#123;</span><br><span class="line">        list1=new ArrayList&lt;&gt;();</span><br><span class="line">        list2=new ArrayList&lt;&gt;();</span><br><span class="line">        list3=new ArrayList&lt;&gt;();</span><br><span class="line">        for(int i=0;i&lt;10;i++)&#123;</span><br><span class="line">            list1.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;100;i++)&#123;</span><br><span class="line">            list2.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;1000;i++)&#123;</span><br><span class="line">            list3.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-</li>
-<li><p>输出(忽略对元素的输出)</p>
-  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">for for 10:1ms</span><br><span class="line">foreach for 10:0ms</span><br><span class="line">iterator for 10:2ms</span><br><span class="line"></span><br><span class="line">for for 100:5ms</span><br><span class="line">foreach for 100:4ms</span><br><span class="line">iterator for 100:12ms</span><br><span class="line"></span><br><span class="line">for for 1000:33ms</span><br><span class="line">foreach for 1000:7ms</span><br><span class="line">iterator for 1000:16ms</span><br></pre></td></tr></table></figure>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>10</th>
-<th>100</th>
-<th>1000</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>for</td>
-<td>1ms</td>
-<td>5ms</td>
-<td>33ms</td>
-</tr>
-<tr>
-<td>forEach</td>
-<td>0ms</td>
-<td>4ms</td>
-<td>7ms</td>
-</tr>
-<tr>
-<td>Iterator</td>
-<td>2ms</td>
-<td>12ms</td>
-<td>16ms</td>
-</tr>
-</tbody></table>
-</li>
-<li><p>结论</p>
-<p>  <strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for的性能最不稳定，foreach次之，Iterator最好</strong></p>
-</li>
-<li><p>使用建议</p>
-<ol>
-<li><p>在数据量不明确的情况下(可能1w,10w或其他)，建议使用Iterator进行遍历</p>
-</li>
-<li><p>在数据量明确且量级小的时候，优先使用foreach</p>
-</li>
-<li><p>需要使用索引时，使用递增变量的开销比for的要小</p>
-</li>
-</ol>
-</li>
-</ul>
-<h4 id="LinkedList的比较"><a href="#LinkedList的比较" class="headerlink" title="LinkedList的比较"></a>LinkedList的比较</h4><ul>
-<li><p>代码</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line">public class TextLinkedList &#123;</span><br><span class="line"></span><br><span class="line">    private static Random random;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list1;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list2;</span><br><span class="line"></span><br><span class="line">    private static List&lt;Integer&gt; list3;</span><br><span class="line"></span><br><span class="line">    public static void execute()&#123;</span><br><span class="line">        random=new Random();</span><br><span class="line">        initList();</span><br><span class="line">        testForWith10Object();</span><br><span class="line">        testForEachWith10Object();</span><br><span class="line">        testIteratorWith10Object();</span><br><span class="line">        testForWith100Object();</span><br><span class="line">        testForEachWith100Object();</span><br><span class="line">        testIteratorWith100Object();</span><br><span class="line">        testForWith1000Object();</span><br><span class="line">        testForEachWith1000Object();</span><br><span class="line">        testIteratorWith1000Object();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith10Object() &#123;</span><br><span class="line">        printFor(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith10Object() &#123;</span><br><span class="line">        printForeach(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith10Object() &#123;</span><br><span class="line">        printIterator(list1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith100Object() &#123;</span><br><span class="line">        printFor(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith100Object() &#123;</span><br><span class="line">        printForeach(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith100Object() &#123;</span><br><span class="line">        printIterator(list2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForWith1000Object() &#123;</span><br><span class="line">        printFor(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith1000Object() &#123;</span><br><span class="line">        printForeach(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith1000Object() &#123;</span><br><span class="line">        printIterator(list3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printFor(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int i=0,size=list.size();i&lt;size;i++)&#123;</span><br><span class="line">            System.out.print(list.get(i));</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;for for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printForeach(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int temp:list)&#123;</span><br><span class="line">            System.out.print(temp+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;foreach for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printIterator(List&lt;Integer&gt; list)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        Iterator&lt;Integer&gt; it=list.iterator();</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        while(it.hasNext())&#123;</span><br><span class="line">            System.out.print(it.next()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;iterator for &quot;+list.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    private static void initList() &#123;</span><br><span class="line">        list1=new LinkedList&lt;&gt;();</span><br><span class="line">        list2=new LinkedList&lt;&gt;();</span><br><span class="line">        list3=new LinkedList&lt;&gt;();</span><br><span class="line">        for(int i=0;i&lt;10;i++)&#123;</span><br><span class="line">            list1.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;100;i++)&#123;</span><br><span class="line">            list2.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;1000;i++)&#123;</span><br><span class="line">            list3.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-
-</li>
-<li><p>输出(忽略对元素的输出)</p>
-  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">for for 10:0ms</span><br><span class="line">foreach for 10:1ms</span><br><span class="line">iterator for 10:0ms</span><br><span class="line"></span><br><span class="line">for for 100:1ms</span><br><span class="line">foreach for 100:0ms</span><br><span class="line">iterator for 100:3ms</span><br><span class="line"></span><br><span class="line">for for 1000:23ms</span><br><span class="line">foreach for 1000:25ms</span><br><span class="line">iterator for 1000:4ms</span><br></pre></td></tr></table></figure>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>10</th>
-<th>100</th>
-<th>1000</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>for</td>
-<td>0ms</td>
-<td>1ms</td>
-<td>23ms</td>
-</tr>
-<tr>
-<td>forEach</td>
-<td>1ms</td>
-<td>0ms</td>
-<td>25ms</td>
-</tr>
-<tr>
-<td>Iterator</td>
-<td>0ms</td>
-<td>3ms</td>
-<td>4ms</td>
-</tr>
-</tbody></table>
-</li>
-<li><p>结论</p>
-<p>  <strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;foreach的性能最不稳定，for次之，Iterator最好</strong></p>
-</li>
-<li><p>使用建议</p>
-<ol>
-<li><p>尽量使用Iterator进行遍历</p>
-</li>
-<li><p>需要使用索引时，使用递增变量的开销比for的要小</p>
-</li>
-</ol>
-</li>
-</ul>
-<h4 id="HashSet的比较"><a href="#HashSet的比较" class="headerlink" title="HashSet的比较"></a>HashSet的比较</h4><p><em><strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;注：因Hash遍历算法与其他类型不一致，所以取消了for循环的比较</strong></em></p>
-<ul>
-<li><p>代码</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">public class TextHash &#123;</span><br><span class="line"></span><br><span class="line">    private static Random random;</span><br><span class="line"></span><br><span class="line">    private static Set&lt;Integer&gt; set1;</span><br><span class="line"></span><br><span class="line">    private static Set&lt;Integer&gt; set2;</span><br><span class="line"></span><br><span class="line">    private static Set&lt;Integer&gt; set3;</span><br><span class="line"></span><br><span class="line">    public static void execute()&#123;</span><br><span class="line">        random=new Random();</span><br><span class="line">        initHash();</span><br><span class="line">        testIteratorWith10Object();</span><br><span class="line">        testForEachWith10Object();</span><br><span class="line">        testIteratorWith100Object();</span><br><span class="line">        testForEachWith100Object();</span><br><span class="line">        testIteratorWith1000Object();</span><br><span class="line">        testForEachWith1000Object();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith10Object() &#123;</span><br><span class="line">        printIterator(set1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith10Object() &#123;</span><br><span class="line">        printForeach(set1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith100Object() &#123;</span><br><span class="line">        printIterator(set2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith100Object() &#123;</span><br><span class="line">        printForeach(set2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testIteratorWith1000Object() &#123;</span><br><span class="line">        printIterator(set3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void testForEachWith1000Object() &#123;</span><br><span class="line">        printForeach(set3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void initHash() &#123;</span><br><span class="line">        set1=new HashSet&lt;&gt;();</span><br><span class="line">        set2=new HashSet&lt;&gt;();</span><br><span class="line">        set3=new HashSet&lt;&gt;();</span><br><span class="line">        for(int i=0;i&lt;10;i++)&#123;</span><br><span class="line">            set1.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;100;i++)&#123;</span><br><span class="line">            set2.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">        for(int i=0;i&lt;1000;i++)&#123;</span><br><span class="line">            set3.add(random.nextInt());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printIterator(Set&lt;Integer&gt; data)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        Iterator&lt;Integer&gt; it=data.iterator();</span><br><span class="line">        while (it.hasNext())&#123;</span><br><span class="line">            System.out.print(it.next()+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;iterator for &quot;+data.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void printForeach(Set&lt;Integer&gt; data)&#123;</span><br><span class="line">        System.out.println();</span><br><span class="line">        System.out.print(&quot;data:&quot;);</span><br><span class="line">        long start=System.currentTimeMillis();</span><br><span class="line">        for(int temp:data)&#123;</span><br><span class="line">            System.out.print(temp+&quot; &quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">        long end=System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;foreach for &quot;+data.size()+&quot;:&quot;+(end-start)+&quot;ms&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-
-</li>
-<li><p>输出(忽略对元素的输出)</p>
-  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">iterator for 10:0ms</span><br><span class="line">foreach for 10:0ms</span><br><span class="line"></span><br><span class="line">iterator for 100:6ms</span><br><span class="line">foreach for 100:0ms</span><br><span class="line"></span><br><span class="line">iterator for 1000:30ms</span><br><span class="line">foreach for 1000:9ms</span><br></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th></th>
-<th>10</th>
-<th>100</th>
-<th>1000</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>foreach</td>
-<td>0ms</td>
-<td>0ms</td>
-<td>9ms</td>
-</tr>
-<tr>
-<td>Iterator</td>
-<td>0ms</td>
-<td>6ms</td>
-<td>30ms</td>
-</tr>
-</tbody></table>
-</li>
-<li><p>结论</p>
-<p>  <strong>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;foreach性能遥遥领先于Iterator</strong></p>
-</li>
-<li><p>使用建议</p>
-<p>  &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;以后就选foreach了，性能好，写起来也方便。</p>
-</li>
-</ul>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ol>
-<li>for循环性能在三者的对比中总体落于下风，而且开销递增幅度较大。以后即使在需要使用索引时我宁愿使用递增变量也不会使用for了。</li>
-<li>Iterator的性能在数组以及链表的表现都是最好的，应该是JAVA的设计者优化过了。在响应时间敏感的情况下(例如web响应)，优先考虑。</li>
-<li>foreach的性能属于两者之间，写法简单，时间不敏感的情况下我会尽量选用。</li>
-</ol>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;以上就是我对常见数据结构遍历机制的一点比较，虽然只是很初步，但是从中我也学到了很多东西，希望你们也有所收获。</p>
-<p>&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果你喜欢本文章，可以收藏阅读，如果你对我的其他文章感兴趣，欢迎到<a href="https://cartoonyu.github.io/cartoon-blog/">我的博客</a>查看。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1650,7 +1489,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-count">48</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
